@@ -72,6 +72,14 @@ public class IdlePregenerator extends Module implements Runnable
         {
             current.x = stp.getConfig().getInt(cfgSkipLabel);
         }
+        for (String worldName : stp.getConfig().getStringList(cfgWorldsLabel))
+        {
+            World w = stp.getServer().getWorld(worldName);
+            if (w != null)
+            {
+                log(getClass(), "[IdlePregenerator] Enabled for: " + w.toString());
+            }
+        }
     }
 
     @Override
@@ -176,7 +184,7 @@ public class IdlePregenerator extends Module implements Runnable
         }
         if (stp.isEnabled())
         {
-            stp.getServer().getScheduler().runTaskLater(stp, () -> run(), 20);
+            stp.getServer().getScheduler().runTaskLater(stp, () -> run(), 100);
         }
     }
 }
