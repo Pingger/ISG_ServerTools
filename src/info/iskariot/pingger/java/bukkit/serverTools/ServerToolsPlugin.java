@@ -42,8 +42,6 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
     /**
      * Ensures, that the given Key is set.
      *
-     * @param cl
-     *            the class calling
      * @param key
      *            the sub key
      * @param def
@@ -51,14 +49,89 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
      * @param desc
      *            The Description for this node
      */
-    public void ensureConfig(Class<?> cl, String key, boolean def, String desc)
+    public void ensureConfig(String key, boolean def, String desc)
     {
-        String k = buildKey(cl, key);
-        getConfig().set(k, getConfig().getBoolean(k, def));
         if (desc != null && !desc.trim().isEmpty())
         {
-            getConfig().set(k + "_Desc", desc);
+            getConfig().set(key + "_Desc", desc);
         }
+        getConfig().set(key, getConfig().getBoolean(key, def));
+    }
+
+    /**
+     * Ensures, that the given Key is set.
+     *
+     * @param key
+     *            the sub key
+     * @param def
+     *            the default value if not set
+     * @param desc
+     *            The Description for this node
+     */
+    public void ensureConfig(String key, double def, String desc)
+    {
+        if (desc != null && !desc.trim().isEmpty())
+        {
+            getConfig().set(key + "_Desc", desc);
+        }
+        getConfig().set(key, getConfig().getDouble(key, def));
+    }
+
+    /**
+     * Ensures, that the given Key is set.
+     *
+     * @param key
+     *            the sub key
+     * @param def
+     *            the default value if not set
+     * @param desc
+     *            The Description for this node
+     */
+    public void ensureConfig(String key, int def, String desc)
+    {
+        if (desc != null && !desc.trim().isEmpty())
+        {
+            getConfig().set(key + "_Desc", desc);
+        }
+        getConfig().set(key, getConfig().getInt(key, def));
+    }
+
+    /**
+     * Ensures, that the given Key is set.
+     *
+     * @param key
+     *            the sub key
+     * @param def
+     *            the default value if not set
+     * @param desc
+     *            The Description for this node
+     */
+    public void ensureConfig(String key, long def, String desc)
+    {
+        if (desc != null && !desc.trim().isEmpty())
+        {
+            getConfig().set(key + "_Desc", desc);
+        }
+        getConfig().set(key, getConfig().getLong(key, def));
+    }
+
+    /**
+     * Ensures, that the given Key is set.
+     *
+     * @param key
+     *            the sub key
+     * @param def
+     *            the default value if not set
+     * @param desc
+     *            The Description for this node
+     */
+    public void ensureConfig(String key, String def, String desc)
+    {
+        if (desc != null && !desc.trim().isEmpty())
+        {
+            getConfig().set(key + "_Desc", desc);
+        }
+        getConfig().set(key, getConfig().getString(key, def));
     }
 
     /**
@@ -73,104 +146,15 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
      * @param desc
      *            The Description for this node
      */
-    public void ensureConfig(Class<?> cl, String key, double def, String desc)
+    public void ensureConfig(String key, String[] def, String desc)
     {
-        String k = buildKey(cl, key);
-        getConfig().set(k, getConfig().getDouble(k, def));
         if (desc != null && !desc.trim().isEmpty())
         {
-            getConfig().set(k + "_Desc", desc);
+            getConfig().set(key + "_Desc", desc);
         }
-    }
-
-    /**
-     * Ensures, that the given Key is set.
-     *
-     * @param cl
-     *            the class calling
-     * @param key
-     *            the sub key
-     * @param def
-     *            the default value if not set
-     * @param desc
-     *            The Description for this node
-     */
-    public void ensureConfig(Class<?> cl, String key, int def, String desc)
-    {
-        String k = buildKey(cl, key);
-        getConfig().set(k, getConfig().getInt(k, def));
-        if (desc != null && !desc.trim().isEmpty())
+        if (!getConfig().isList(key))
         {
-            getConfig().set(k + "_Desc", desc);
-        }
-    }
-
-    /**
-     * Ensures, that the given Key is set.
-     *
-     * @param cl
-     *            the class calling
-     * @param key
-     *            the sub key
-     * @param def
-     *            the default value if not set
-     * @param desc
-     *            The Description for this node
-     */
-    public void ensureConfig(Class<?> cl, String key, long def, String desc)
-    {
-        String k = buildKey(cl, key);
-        getConfig().set(k, getConfig().getLong(k, def));
-        if (desc != null && !desc.trim().isEmpty())
-        {
-            getConfig().set(k + "_Desc", desc);
-        }
-    }
-
-    /**
-     * Ensures, that the given Key is set.
-     *
-     * @param cl
-     *            the class calling
-     * @param key
-     *            the sub key
-     * @param def
-     *            the default value if not set
-     * @param desc
-     *            The Description for this node
-     */
-    public void ensureConfig(Class<?> cl, String key, String def, String desc)
-    {
-        String k = buildKey(cl, key);
-        getConfig().set(k, getConfig().getString(k, def));
-        if (desc != null && !desc.trim().isEmpty())
-        {
-            getConfig().set(k + "_Desc", desc);
-        }
-    }
-
-    /**
-     * Ensures, that the given Key is set.
-     *
-     * @param cl
-     *            the class calling
-     * @param key
-     *            the sub key
-     * @param def
-     *            the default value if not set
-     * @param desc
-     *            The Description for this node
-     */
-    public void ensureConfig(Class<?> cl, String key, String[] def, String desc)
-    {
-        String k = buildKey(cl, key);
-        if (!getConfig().isList(k))
-        {
-            getConfig().set(k, def);
-        }
-        if (desc != null && !desc.trim().isEmpty())
-        {
-            getConfig().set(k + "_Desc", desc);
+            getConfig().set(key, def);
         }
     }
 

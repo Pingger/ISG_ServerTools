@@ -17,11 +17,11 @@ import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
  */
 public class SleepVote extends Module implements Listener
 {
-    private static final String cfgDayDelay            = "SuccessActionDelayTicks";
-    private static final String cfgDayTime             = "SuccessActionDayTime";
-    private static final String cfgMessageFailureLabel = "FailureMessage";
-    private static final String cfgMessageSuccessLabel = "SuccessMessage";
-    private static final String cfgThresholdLabel      = "SleepingThreshold";
+    private static final String cfgDayDelay            = ServerToolsPlugin.buildKey(SleepVote.class, "SuccessActionDelayTicks");
+    private static final String cfgDayTime             = ServerToolsPlugin.buildKey(SleepVote.class, "SuccessActionDayTime");
+    private static final String cfgMessageFailureLabel = ServerToolsPlugin.buildKey(SleepVote.class, "FailureMessage");
+    private static final String cfgMessageSuccessLabel = ServerToolsPlugin.buildKey(SleepVote.class, "SuccessMessage");
+    private static final String cfgThresholdLabel      = ServerToolsPlugin.buildKey(SleepVote.class, "SleepingThreshold");
 
     /**
      * Ensures that the ConfigDefaults are set
@@ -32,21 +32,19 @@ public class SleepVote extends Module implements Listener
     public static void loadConfigDefaults(ServerToolsPlugin plg)
     {
         Class<?> c = SleepVote.class;
-        plg.ensureConfig(c, "enabled", true, null);
-        plg.ensureConfig(c, "logging", true, null);
-        plg.ensureConfig(c, cfgThresholdLabel, 0.5, " the minimum percentage sleeping to forward, from 0.0 to 1.0");
-        plg.ensureConfig(c, cfgDayDelay, 80, "the time in ticks change the time to " + cfgDayTime);
-        plg.ensureConfig(c, cfgDayTime, 23900, "the time to set on successful sleep vote");
+        plg.ensureConfig(ServerToolsPlugin.buildKey(SleepVote.class, "enabled"), true, null);
+        plg.ensureConfig(ServerToolsPlugin.buildKey(SleepVote.class, "logging"), true, null);
+        plg.ensureConfig(cfgThresholdLabel, 0.5, " the minimum percentage sleeping to forward, from 0.0 to 1.0");
+        plg.ensureConfig(cfgDayDelay, 80, "the time in ticks change the time to " + cfgDayTime);
+        plg.ensureConfig(cfgDayTime, 23900, "the time to set on successful sleep vote");
         plg
                 .ensureConfig(
-                        c,
                         cfgMessageFailureLabel,
                         "[SleepVote{0}] §6{2} sleeping.§r Need at least §4{3}§r",
                         "failure message, {0}logging info, {1}WorldName, {2}PercentSleeping, {3}PercentNeeded"
                 );
         plg
                 .ensureConfig(
-                        c,
                         cfgMessageSuccessLabel,
                         "[SleepVote{0}] §2{2} sleeping. Forwarding night.§r",
                         "success message, {0}logging info, {1}WorldName, {2}PercentSleeping, {3}PercentNeeded"

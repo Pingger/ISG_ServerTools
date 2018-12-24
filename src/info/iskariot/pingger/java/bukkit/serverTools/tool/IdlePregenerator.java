@@ -17,12 +17,12 @@ import info.iskariot.pingger.java.bukkit.serverTools.monitor.TPSMonitor;
 public class IdlePregenerator extends Module implements Runnable
 {
     //private static final String cfgAccelerateLabel = "accelerateOnEmpty";
-    private static final String cfgMaxLabel        = "blockLimit";
-    private static final String cfgMaxPlayersLabel = "maxPlayers";
-    private static final String cfgSkipLabel       = "startWithRadius";
-    private static final String cfgThresholdLabel  = "tpsThreshold";
-    private static final String cfgTPTLabel        = "tpt";
-    private static final String cfgWorldsLabel     = "worlds";
+    private static final String cfgMaxLabel        = ServerToolsPlugin.buildKey(IdlePregenerator.class, "blockLimit");
+    private static final String cfgMaxPlayersLabel = ServerToolsPlugin.buildKey(IdlePregenerator.class, "maxPlayers");
+    private static final String cfgSkipLabel       = ServerToolsPlugin.buildKey(IdlePregenerator.class, "startWithRadius");
+    private static final String cfgThresholdLabel  = ServerToolsPlugin.buildKey(IdlePregenerator.class, "tpsThreshold");
+    private static final String cfgTPTLabel        = ServerToolsPlugin.buildKey(IdlePregenerator.class, "tpt");
+    private static final String cfgWorldsLabel     = ServerToolsPlugin.buildKey(IdlePregenerator.class, "worlds");
 
     /**
      * Ensures that the ConfigDefaults are set
@@ -33,20 +33,20 @@ public class IdlePregenerator extends Module implements Runnable
     public static void loadConfigDefaults(ServerToolsPlugin plg)
     {
         Class<?> c = IdlePregenerator.class;
-        plg.ensureConfig(c, "enabled", true, null);
-        plg.ensureConfig(c, "logging", true, null);
-        plg.ensureConfig(c, cfgThresholdLabel, 19.5, "the tps limit, below which chunks are no longer pregenerated. Depends on TPSMonitor!");
-        plg.ensureConfig(c, cfgTPTLabel, 10, "the Time Per Tick (in ms) to work on pregenerating chunks. Minimum generation of 1 Chunk per tick");
-        plg.ensureConfig(c, cfgMaxPlayersLabel, 4, "the maximum count of logged in players to autogenerate");
+        plg.ensureConfig(ServerToolsPlugin.buildKey(IdlePregenerator.class, "enabled"), false, null);
+        plg.ensureConfig(ServerToolsPlugin.buildKey(IdlePregenerator.class, "logging"), true, null);
+        plg.ensureConfig(cfgThresholdLabel, 19.5, "the tps limit, below which chunks are no longer pregenerated. Depends on TPSMonitor!");
+        plg.ensureConfig(cfgTPTLabel, 10, "the Time Per Tick (in ms) to work on pregenerating chunks. Minimum generation of 1 Chunk per tick");
+        plg.ensureConfig(cfgMaxPlayersLabel, 4, "the maximum count of logged in players to autogenerate");
         //plg.ensureConfig(c, cfgAccelerateLabel, false, "Accelerate if the server is empty? Tries to fully fill a tick with pregenerating");
-        plg.ensureConfig(c, cfgMaxLabel, 4096, "The maximum Dimension in blocks (from 0,0) to pregenerate. Might be slightly more");
-        plg.ensureConfig(c, cfgSkipLabel, 0, "Skips all generating within this radius from (0,0) in Blocks");
+        plg.ensureConfig(cfgMaxLabel, 4096, "The maximum Dimension in blocks (from 0,0) to pregenerate. Might be slightly more");
+        plg.ensureConfig(cfgSkipLabel, 0, "Skips all generating within this radius from (0,0) in Blocks");
         ArrayList<String> worlds = new ArrayList<>();
         for (World w : plg.getServer().getWorlds())
         {
             worlds.add(w.getName());
         }
-        plg.ensureConfig(c, cfgWorldsLabel, worlds.toArray(new String[0]), "The Worlds to pregenerate");
+        plg.ensureConfig(cfgWorldsLabel, worlds.toArray(new String[0]), "The Worlds to pregenerate");
     }
 
     private Point current     = new Point();
@@ -71,7 +71,7 @@ public class IdlePregenerator extends Module implements Runnable
         }
         if (current.x == 0)
         {
-            current.x = stp.getConfig().getInt(ServerToolsPlugin.buildKey(getClass(), cfgSkipLabel));
+            current.x = stp.getConfig().getInt(cfgSkipLabel);
         }
     }
 
@@ -79,8 +79,8 @@ public class IdlePregenerator extends Module implements Runnable
     public void run()
     {
         long start = System.nanoTime();
-        if (current.x * 16l >= stp.getConfig().getInt(ServerToolsPlugin.buildKey(getClass(), cfgMaxLabel))
-                && current.y * 16l >= stp.getConfig().getInt(ServerToolsPlugin.buildKey(getClass(), cfgMaxLabel)))
+        if (current.x * 16l >= stp.getConfig().getInt(cfgMaxLabel)
+                && current.y * 16l >= stp.getConfig().getInt(cfgMaxLabel))
         {
             if (lastFailure != 3)
             {
@@ -88,7 +88,7 @@ public class IdlePregenerator extends Module implements Runnable
             }
             lastFailure = 3;
         }
-        else if (stp.getServer().getOnlinePlayers().size() > stp.getConfig().getInt(ServerToolsPlugin.buildKey(getClass(), cfgMaxPlayersLabel)))
+        else if (stp.getServer().getOnlinePlayers().size() > stp.getConfig().getInt(cfgMaxPlayersLabel))
         {
             if (lastFailure != 1)
             {
@@ -96,7 +96,7 @@ public class IdlePregenerator extends Module implements Runnable
             }
             lastFailure = 1;
         }
-        else if (TPSMonitor.tps < stp.getConfig().getDouble(ServerToolsPlugin.buildKey(getClass(), cfgThresholdLabel)))
+        else if (TPSMonitor.tps < stp.getConfig().getDouble(cfgThresholdLabel))
         {
             if (lastFailure != 2)
             {
@@ -111,9 +111,9 @@ public class IdlePregenerator extends Module implements Runnable
                 log(getClass(), "[IdlePregenerator] Continue");
             }
             lastFailure = 0;
-            long max = stp.getConfig().getInt(ServerToolsPlugin.buildKey(getClass(), cfgTPTLabel));
+            long max = stp.getConfig().getInt(cfgTPTLabel);
             ArrayList<World> worlds = new ArrayList<>();
-            for (String worldName : stp.getConfig().getStringList(ServerToolsPlugin.buildKey(getClass(), cfgWorldsLabel)))
+            for (String worldName : stp.getConfig().getStringList(cfgWorldsLabel))
             {
                 World w = stp.getServer().getWorld(worldName);
                 if (w != null)
@@ -153,7 +153,7 @@ public class IdlePregenerator extends Module implements Runnable
                         {
                             direction = 0;
                             stp.reloadConfig();
-                            stp.getConfig().set(ServerToolsPlugin.buildKey(getClass(), cfgSkipLabel), current.y * 16);
+                            stp.getConfig().set(cfgSkipLabel, current.y * 16);
                             stp.saveConfig();
                             log(getClass(), "[IdlePregenerator] Radius now: " + (current.y + 1) * 16);
                         }
