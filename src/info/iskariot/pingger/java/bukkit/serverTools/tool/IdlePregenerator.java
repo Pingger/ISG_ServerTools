@@ -77,7 +77,7 @@ public class IdlePregenerator extends Module implements Runnable
             World w = stp.getServer().getWorld(worldName);
             if (w != null)
             {
-                log(getClass(), "[IdlePregenerator] Enabled for: " + w.toString());
+                log(getClass(), "[IdlePregenerator] Enabled for: " + w.getName());
             }
             else
             {
