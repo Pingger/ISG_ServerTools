@@ -32,8 +32,8 @@ public class SleepVote extends Module implements Listener
     public static void loadConfigDefaults(ServerToolsPlugin plg)
     {
         Class<?> c = SleepVote.class;
-        plg.ensureConfig(c, "enabled", true, "if the module is enabled");
-        plg.ensureConfig(c, "logging", true, "if messages of this module are logged to the console");
+        plg.ensureConfig(c, "enabled", true, null);
+        plg.ensureConfig(c, "logging", true, null);
         plg.ensureConfig(c, cfgThresholdLabel, 0.5, " the minimum percentage sleeping to forward, from 0.0 to 1.0");
         plg.ensureConfig(c, cfgDayDelay, 80, "the time in ticks change the time to " + cfgDayTime);
         plg.ensureConfig(c, cfgDayTime, 23900, "the time to set on successful sleep vote");

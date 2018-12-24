@@ -33,8 +33,8 @@ public class IdlePregenerator extends Module implements Runnable
     public static void loadConfigDefaults(ServerToolsPlugin plg)
     {
         Class<?> c = IdlePregenerator.class;
-        plg.ensureConfig(c, "enabled", true, "if the module is enabled");
-        plg.ensureConfig(c, "logging", true, "if messages of this module are logged to the console");
+        plg.ensureConfig(c, "enabled", true, null);
+        plg.ensureConfig(c, "logging", true, null);
         plg.ensureConfig(c, cfgThresholdLabel, 19.5, "the tps limit, below which chunks are no longer pregenerated. Depends on TPSMonitor!");
         plg.ensureConfig(c, cfgTPTLabel, 10, "the Time Per Tick (in ms) to work on pregenerating chunks. Minimum generation of 1 Chunk per tick");
         plg.ensureConfig(c, cfgMaxPlayersLabel, 4, "the maximum count of logged in players to autogenerate");
