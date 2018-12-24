@@ -152,6 +152,9 @@ public class IdlePregenerator extends Module implements Runnable
                         if (current.y == -current.x)
                         {
                             direction = 0;
+                            stp.reloadConfig();
+                            stp.getConfig().set(ServerToolsPlugin.buildKey(getClass(), cfgSkipLabel), current.y * 16);
+                            stp.saveConfig();
                             log(getClass(), "[IdlePregenerator] Radius now: " + (current.y + 1) * 16);
                         }
                         break;
