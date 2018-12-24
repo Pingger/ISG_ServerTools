@@ -147,6 +147,31 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
         }
     }
 
+    /**
+     * Ensures, that the given Key is set.
+     *
+     * @param cl
+     *            the class calling
+     * @param key
+     *            the sub key
+     * @param def
+     *            the default value if not set
+     * @param desc
+     *            The Description for this node
+     */
+    public void ensureConfig(Class<?> cl, String key, String[] def, String desc)
+    {
+        String k = buildKey(cl, key);
+        if (!getConfig().isList(k))
+        {
+            getConfig().set(k, def);
+        }
+        if (desc != null && !desc.trim().isEmpty())
+        {
+            getConfig().set(k + "_Desc", desc);
+        }
+    }
+
     @Override
     public void onDisable()
     {

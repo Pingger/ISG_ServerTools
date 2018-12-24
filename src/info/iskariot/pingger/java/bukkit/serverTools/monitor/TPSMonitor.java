@@ -12,6 +12,11 @@ import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
  */
 public class TPSMonitor extends Module implements Runnable
 {
+    /**
+     * Holds the current TPS value of the TPSMonitor. -1 if no tps yet calculated or
+     * if disabled.
+     */
+    public static double        tps               = -1;
     private static final String cfgMessageLabel   = "message";
     private static final String cfgThresholdLabel = "threshold";
 
@@ -26,7 +31,7 @@ public class TPSMonitor extends Module implements Runnable
         Class<?> c = TPSMonitor.class;
         plg.ensureConfig(c, "enabled", true, "if the module is enabled");
         plg.ensureConfig(c, "logging", false, "if messages of this module are logged to the console");
-        plg.ensureConfig(c, cfgThresholdLabel, 19.5, " the tps limit, below which the warning is triggered");
+        plg.ensureConfig(c, cfgThresholdLabel, 19.5, "the tps limit, below which the warning is triggered");
         plg.ensureConfig(c, cfgMessageLabel, "[TPSMon] §4{1}§r is below §6{2}§r. Normal is §620.0§r", "{0}unused, {1}CurrentTPS, {2}TPSThreshold");
     }
 
@@ -35,7 +40,7 @@ public class TPSMonitor extends Module implements Runnable
     @Override
     public void onDisable()
     {
-
+        tps = -1;
     }
 
     @Override
@@ -54,7 +59,7 @@ public class TPSMonitor extends Module implements Runnable
         }
         if (list.size() == 20)
         {
-            double tps = list.size() * 1e9 / (list.getLast() - list.getFirst());
+            tps = list.size() * 1e9 / (list.getLast() - list.getFirst());
             log(getClass(), list.size() + list.toString());
             log(getClass(), list.getLast() / (long) 1e7 + "-" + list.getFirst() / (long) 1e7 + " => " + tps);
             if (tps < stp.getConfig().getDouble(cfgThresholdLabel))
