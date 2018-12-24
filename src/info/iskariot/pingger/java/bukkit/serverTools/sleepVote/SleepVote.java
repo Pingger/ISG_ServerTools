@@ -31,7 +31,6 @@ public class SleepVote extends Module implements Listener
      */
     public static void loadConfigDefaults(ServerToolsPlugin plg)
     {
-        Class<?> c = SleepVote.class;
         plg.ensureConfig(ServerToolsPlugin.buildKey(SleepVote.class, "enabled"), true, null);
         plg.ensureConfig(ServerToolsPlugin.buildKey(SleepVote.class, "logging"), true, null);
         plg.ensureConfig(cfgThresholdLabel, 0.5, " the minimum percentage sleeping to forward, from 0.0 to 1.0");

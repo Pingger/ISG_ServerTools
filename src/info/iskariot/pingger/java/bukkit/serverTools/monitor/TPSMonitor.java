@@ -28,7 +28,6 @@ public class TPSMonitor extends Module implements Runnable
      */
     public static void loadConfigDefaults(ServerToolsPlugin plg)
     {
-        Class<?> c = TPSMonitor.class;
         plg.ensureConfig(ServerToolsPlugin.buildKey(TPSMonitor.class, "enabled"), true, null);
         plg.ensureConfig(ServerToolsPlugin.buildKey(TPSMonitor.class, "logging"), false, null);
         plg.ensureConfig(cfgThresholdLabel, 19.5, "the tps limit, below which the warning is triggered");

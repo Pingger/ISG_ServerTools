@@ -32,7 +32,6 @@ public class IdlePregenerator extends Module implements Runnable
      */
     public static void loadConfigDefaults(ServerToolsPlugin plg)
     {
-        Class<?> c = IdlePregenerator.class;
         plg.ensureConfig(ServerToolsPlugin.buildKey(IdlePregenerator.class, "enabled"), false, null);
         plg.ensureConfig(ServerToolsPlugin.buildKey(IdlePregenerator.class, "logging"), true, null);
         plg.ensureConfig(cfgThresholdLabel, 19.5, "the tps limit, below which chunks are no longer pregenerated. Depends on TPSMonitor!");
