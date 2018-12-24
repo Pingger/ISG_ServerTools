@@ -79,6 +79,10 @@ public class IdlePregenerator extends Module implements Runnable
             {
                 log(getClass(), "[IdlePregenerator] Enabled for: " + w.toString());
             }
+            else
+            {
+                log(getClass(), "[IdlePregenerator] FAILED for: " + worldName);
+            }
         }
     }
 
