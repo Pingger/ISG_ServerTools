@@ -16,9 +16,10 @@ public class TPSMonitor extends Module implements Runnable
      * Holds the current TPS value of the TPSMonitor. -1 if no tps yet calculated or
      * if disabled.
      */
-    public static double        tps               = -1;
-    private static final String cfgMessageLabel   = ServerToolsPlugin.buildKey(TPSMonitor.class, "message");
-    private static final String cfgThresholdLabel = ServerToolsPlugin.buildKey(TPSMonitor.class, "threshold");
+    public static double        tps                = -1;
+    private static final String cfgMessageLabel    = ServerToolsPlugin.buildKey(TPSMonitor.class, "message");
+    private static final String cfgThresholdLabel  = ServerToolsPlugin.buildKey(TPSMonitor.class, "threshold");
+    private static final String cfgWarningCooldown = ServerToolsPlugin.buildKey(TPSMonitor.class, "warningCooldown");
 
     /**
      * Ensures that the ConfigDefaults are set
@@ -31,10 +32,13 @@ public class TPSMonitor extends Module implements Runnable
         plg.ensureConfig(ServerToolsPlugin.buildKey(TPSMonitor.class, "enabled"), true, null);
         plg.ensureConfig(ServerToolsPlugin.buildKey(TPSMonitor.class, "logging"), false, null);
         plg.ensureConfig(cfgThresholdLabel, 19.5, "the tps limit, below which the warning is triggered");
+        plg.ensureConfig(cfgWarningCooldown, 5000, "delay (in ms) between warnings");
         plg.ensureConfig(cfgMessageLabel, "[TPSMon] §4{1}§r is below §6{2}§r. Normal is §620.0§r", "{0}unused, {1}CurrentTPS, {2}TPSThreshold");
     }
 
-    private LinkedList<Long> list = new LinkedList<>();
+    private long             lastNotify = 0;
+
+    private LinkedList<Long> list       = new LinkedList<>();
 
     @Override
     public void onDisable()
@@ -59,9 +63,11 @@ public class TPSMonitor extends Module implements Runnable
         if (list.size() == 20)
         {
             tps = list.size() * 1e9 / (list.getLast() - list.getFirst());
-            log(getClass(), list.getLast() / (long) 1e7 + "-" + list.getFirst() / (long) 1e7 + " => " + tps);
-            if (tps < stp.getConfig().getDouble(cfgThresholdLabel))
+            //log(getClass(), list.getLast() / (long) 1e7 + "-" + list.getFirst() / (long) 1e7 + " => " + tps);
+            if (tps < stp.getConfig().getDouble(cfgThresholdLabel)
+                    && lastNotify + stp.getConfig().getInt(cfgWarningCooldown) < System.currentTimeMillis())
             {
+                lastNotify = System.currentTimeMillis();
                 String msg = stp.getConfig().getString(cfgMessageLabel);
                 msg = msg
                         .replaceAll("\\{1\\}", new DecimalFormat("#0.0").format(tps))
