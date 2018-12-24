@@ -30,6 +30,7 @@
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -37,7 +38,8 @@
 				<configuration>
 					<source>1.8</source>
 					<target>1.8</target>
-				</configuration>
+					<optimize>true</optimize>
+                </configuration>
 			</plugin>
 		</plugins>
 		<resources>
