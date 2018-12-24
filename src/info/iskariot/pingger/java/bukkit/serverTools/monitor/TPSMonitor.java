@@ -64,9 +64,8 @@ public class TPSMonitor extends Module implements Runnable
             {
                 String msg = stp.getConfig().getString(cfgMessageLabel);
                 msg = msg
-                        .replaceAll("{1}", new DecimalFormat("#0.0").format(tps))
-                        .replaceAll("{2}", new DecimalFormat("#0.0").format(stp.getConfig().getDouble(cfgThresholdLabel)));
-                stp.getLogger().info(msg);
+                        .replaceAll("\\{1\\}", new DecimalFormat("#0.0").format(tps))
+                        .replaceAll("\\{2\\}", new DecimalFormat("#0.0").format(stp.getConfig().getDouble(cfgThresholdLabel)));
                 stp.getServer().broadcastMessage(msg);
             }
         }

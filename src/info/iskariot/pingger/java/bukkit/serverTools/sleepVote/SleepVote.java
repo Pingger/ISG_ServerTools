@@ -74,20 +74,20 @@ public class SleepVote extends Module implements Listener
         {
             String msg = stp.getConfig().getString(cfgMessageSuccessLabel);
             msg = msg
-                    .replaceAll("{0}", "")
-                    .replaceAll("{1}", world.getName())
-                    .replaceAll("{2}", percentString + "%")
-                    .replaceAll("{3}", percentNeededString + "%");
+                    .replaceAll("\\{0\\}", "")
+                    .replaceAll("\\{1\\}", world.getName())
+                    .replaceAll("\\{2\\}", percentString + "%")
+                    .replaceAll("\\{3\\}", percentNeededString + "%");
             for (Player p : world.getPlayers())
             {
                 p.sendMessage(msg);
             }
             msg = stp.getConfig().getString(cfgMessageSuccessLabel);
             msg = msg
-                    .replaceAll("{0}", "." + world.getName())
-                    .replaceAll("{1}", world.getName())
-                    .replaceAll("{2}", percentString + "%")
-                    .replaceAll("{3}", percentNeededString + "%");
+                    .replaceAll("\\{0\\}", "." + world.getName())
+                    .replaceAll("\\{1\\}", world.getName())
+                    .replaceAll("\\{2\\}", percentString + "%")
+                    .replaceAll("\\{3\\}", percentNeededString + "%");
             log(SleepVote.class, msg);
             stp
                     .getServer()
@@ -98,20 +98,20 @@ public class SleepVote extends Module implements Listener
         {
             String msg = stp.getConfig().getString(cfgMessageFailureLabel);
             msg = msg
-                    .replaceAll("{0}", "")
-                    .replaceAll("{1}", world.getName())
-                    .replaceAll("{2}", percentString + "%")
-                    .replaceAll("{3}", percentNeededString + "%");
+                    .replaceAll("\\{0\\}", "")
+                    .replaceAll("\\{1\\}", world.getName())
+                    .replaceAll("\\{2\\}", percentString + "%")
+                    .replaceAll("\\{3\\}", percentNeededString + "%");
             for (Player p : world.getPlayers())
             {
                 p.sendMessage(msg);
             }
             msg = stp.getConfig().getString(cfgMessageFailureLabel);
             msg = msg
-                    .replaceAll("{0}", "." + world.getName())
-                    .replaceAll("{1}", world.getName())
-                    .replaceAll("{2}", percentString + "%")
-                    .replaceAll("{3}", percentNeededString + "%");
+                    .replaceAll("\\{0\\}", "." + world.getName())
+                    .replaceAll("\\{1\\}", world.getName())
+                    .replaceAll("\\{2\\}", percentString + "%")
+                    .replaceAll("\\{3\\}", percentNeededString + "%");
             log(SleepVote.class, msg);
         }
     }
