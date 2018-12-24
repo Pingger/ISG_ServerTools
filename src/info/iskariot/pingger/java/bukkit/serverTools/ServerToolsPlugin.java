@@ -137,8 +137,6 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
     /**
      * Ensures, that the given Key is set.
      *
-     * @param cl
-     *            the class calling
      * @param key
      *            the sub key
      * @param def
