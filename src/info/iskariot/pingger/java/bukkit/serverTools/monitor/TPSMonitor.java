@@ -33,7 +33,7 @@ public class TPSMonitor extends Module implements Runnable
         plg.ensureConfig(ServerToolsPlugin.buildKey(TPSMonitor.class, "logging"), false, null);
         plg.ensureConfig(cfgThresholdLabel, 19.5, "the tps limit, below which the warning is triggered");
         plg.ensureConfig(cfgWarningCooldown, 5000, "delay (in ms) between warnings");
-        plg.ensureConfig(cfgMessageLabel, "[TPSMon] §4{1}§r is below §6{2}§r. Normal is §620.0§r", "{0}unused, {1}CurrentTPS, {2}TPSThreshold");
+        plg.ensureConfig(cfgMessageLabel, "[TPSMon] TPS drop! §4{1}§r/§620.0§r. Threshold: §6{2}§r", "{0}unused, {1}CurrentTPS, {2}TPSThreshold");
     }
 
     private long             lastNotify = 0;
