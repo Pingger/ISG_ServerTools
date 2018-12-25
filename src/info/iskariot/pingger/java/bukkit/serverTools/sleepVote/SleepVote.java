@@ -33,7 +33,7 @@ public class SleepVote extends Module implements Listener
     {
         plg.ensureConfig(ServerToolsPlugin.buildKey(SleepVote.class, "enabled"), true, null);
         plg.ensureConfig(ServerToolsPlugin.buildKey(SleepVote.class, "logging"), true, null);
-        plg.ensureConfig(cfgThresholdLabel, 0.5, " the minimum percentage sleeping to forward, from 0.0 to 1.0");
+        plg.ensureConfig(cfgThresholdLabel, 0.5, "the minimum percentage sleeping to forward, from 0.0 to 1.0");
         plg.ensureConfig(cfgDayDelay, 80, "the time in ticks change the time to " + cfgDayTime);
         plg.ensureConfig(cfgDayTime, 23900, "the time to set on successful sleep vote");
         plg
