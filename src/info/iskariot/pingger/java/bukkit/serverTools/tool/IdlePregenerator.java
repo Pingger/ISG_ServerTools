@@ -70,7 +70,8 @@ public class IdlePregenerator extends Module implements Runnable
         }
         if (current.x == 0)
         {
-            current.x = stp.getConfig().getInt(cfgSkipLabel);
+            current.x = stp.getConfig().getInt(cfgSkipLabel) / 16;
+            current.y = stp.getConfig().getInt(cfgSkipLabel) / 16;
         }
         for (String worldName : stp.getConfig().getStringList(cfgWorldsLabel))
         {
@@ -164,7 +165,7 @@ public class IdlePregenerator extends Module implements Runnable
                         {
                             direction = 0;
                             stp.reloadConfig();
-                            stp.getConfig().set(cfgSkipLabel, current.y * 16);
+                            stp.getConfig().set(cfgSkipLabel, (current.y - 1) * 16);
                             stp.saveConfig();
                             log(getClass(), "[IdlePregenerator] Radius now: " + (current.y + 1) * 16);
                         }
