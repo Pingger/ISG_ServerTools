@@ -180,10 +180,7 @@ public class IdlePregenerator extends Module implements Runnable
                     {
                         log(getClass(), "Failed to load chunk: " + chunk.getWorld() + ":" + chunk.getX() + ":" + chunk.getZ());
                     }
-                    if (chunk.unload(true))
-                    {
-                        log(getClass(), "Failed to unload chunk: " + chunk.getWorld() + ":" + chunk.getX() + ":" + chunk.getZ());
-                    }
+                    chunk.unload(true);
                 }
             }
             while (max > (System.nanoTime() - start) / 1e6);
