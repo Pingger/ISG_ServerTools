@@ -91,7 +91,7 @@ public class IdlePregenerator extends Module implements Runnable
     {
         long start = System.nanoTime();
         if (current.x * 16l >= stp.getConfig().getInt(cfgMaxLabel)
-                && current.y * 16l >= stp.getConfig().getInt(cfgMaxLabel))
+                || current.y * 16l >= stp.getConfig().getInt(cfgMaxLabel))
         {
             if (lastFailure != 3)
             {
