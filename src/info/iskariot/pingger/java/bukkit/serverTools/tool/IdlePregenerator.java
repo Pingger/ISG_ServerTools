@@ -175,8 +175,14 @@ public class IdlePregenerator extends Module implements Runnable
                 for (World world : worlds)
                 {
                     Chunk chunk = world.getChunkAt(current.x, current.y);
-                    chunk.load(true);
-                    chunk.unload(true);
+                    if (!chunk.load(true))
+                    {
+                        log(getClass(), "Failed to load chunk: " + chunk.getWorld() + ":" + chunk.getX() + ":" + chunk.getZ());
+                    }
+                    if (chunk.unload(true))
+                    {
+                        log(getClass(), "Failed to unload chunk: " + chunk.getWorld() + ":" + chunk.getX() + ":" + chunk.getZ());
+                    }
                 }
             }
             while (max > (System.nanoTime() - start) / 1e6);
