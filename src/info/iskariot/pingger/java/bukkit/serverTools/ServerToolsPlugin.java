@@ -9,6 +9,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import info.iskariot.pingger.java.bukkit.serverTools.monitor.TPSMonitor;
 import info.iskariot.pingger.java.bukkit.serverTools.sleepVote.SleepVote;
+import info.iskariot.pingger.java.bukkit.serverTools.tool.ChunkUnloader;
 import info.iskariot.pingger.java.bukkit.serverTools.tool.IdlePregenerator;
 
 /**
@@ -20,6 +21,7 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
     private static LinkedList<Module>              loadedModules = new LinkedList<>();
     @SuppressWarnings("unchecked")
     private static final Class<? extends Module>[] modules       = new Class[] {
+            ChunkUnloader.class,
             IdlePregenerator.class,
             TPSMonitor.class,
             SleepVote.class
