@@ -88,7 +88,7 @@ public class SleepVote extends Module implements Listener
                     .replaceAll("\\{1\\}", world.getName())
                     .replaceAll("\\{2\\}", percentString + "%")
                     .replaceAll("\\{3\\}", percentNeededString + "%");
-            log(SleepVote.class, msg);
+            log(SleepVote.class, msg.replaceAll("§[0-9a-fA-F]", ""));
             stp
                     .getServer()
                     .getScheduler()
@@ -112,7 +112,7 @@ public class SleepVote extends Module implements Listener
                     .replaceAll("\\{1\\}", world.getName())
                     .replaceAll("\\{2\\}", percentString + "%")
                     .replaceAll("\\{3\\}", percentNeededString + "%");
-            log(SleepVote.class, msg);
+            log(SleepVote.class, msg.replaceAll("§[0-9a-fA-F]", ""));
         }
     }
 
