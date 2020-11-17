@@ -1,5 +1,0 @@
-name: "ISG_ServerTools"
-main: "info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin"
-version: "0.0.2-SNAPSHOT"
-author: "_Pingger_"
-api-version: 1.13
