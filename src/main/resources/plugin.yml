@@ -3,4 +3,5 @@ main: info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin
 version: ${project.version}
 author: Pingger Shikkoken (_Pingger_)
 api-version: 1.16
+softdepend: [dynmap]
 commands:

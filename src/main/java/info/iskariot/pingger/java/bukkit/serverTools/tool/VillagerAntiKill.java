@@ -8,7 +8,6 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
-import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
 
 /**
  *
@@ -17,16 +16,11 @@ import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
  */
 public class VillagerAntiKill extends Module implements Listener
 {
-	/**
-	 * Ensures that the ConfigDefaults are set
-	 *
-	 * @param plg
-	 *            the {@link ServerToolsPlugin} calling
-	 */
-	public static void loadConfigDefaults(ServerToolsPlugin plg)
+	@Override
+	public void loadConfigDefaults()
 	{
-		plg.ensureConfig(ServerToolsPlugin.buildKey(VillagerAntiKill.class, "enabled"), true, null);
-		plg.ensureConfig(ServerToolsPlugin.buildKey(VillagerAntiKill.class, "logging"), false, null);
+		ensureConfig("enabled", true, null);
+		ensureConfig("logging", false, null);
 	}
 
 	@Override
@@ -50,8 +44,13 @@ public class VillagerAntiKill extends Module implements Listener
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 	public void onEntityDamageEvent(EntityDamageEvent ede)
 	{
-		if (stp.isEnabled() && stp.getConfig().getBoolean(ServerToolsPlugin.buildKey(VillagerAntiKill.class, "enabled"), true)) {
+		if (isEnabled()) {
 			if (ede.getEntityType() != null && ede.getEntityType().equals(EntityType.VILLAGER)) {
+
+				log(
+						() -> "Cancelling Damage to " + ede.getEntity().toString() + "; Cause: " + ede.getCause().toString() + "; Amount: "
+								+ ede.getDamage()
+				);
 				ede.setCancelled(true);
 				ede.setDamage(0);
 			}
@@ -67,8 +66,9 @@ public class VillagerAntiKill extends Module implements Listener
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
 	public void onEntityTargetEvent(EntityTargetEvent ete)
 	{
-		if (stp.isEnabled() && stp.getConfig().getBoolean(ServerToolsPlugin.buildKey(VillagerAntiKill.class, "enabled"), true)) {
+		if (isEnabled()) {
 			if (ete.getTarget() != null && ete.getTarget().getType() != null && ete.getTarget().getType().equals(EntityType.VILLAGER)) {
+				log(() -> "Cancelling Targeting " + ete.getTarget().toString() + " by " + ete.getEntity().toString());
 				ete.setCancelled(true);
 			}
 		}

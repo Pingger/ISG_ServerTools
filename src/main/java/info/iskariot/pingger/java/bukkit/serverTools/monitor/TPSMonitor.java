@@ -4,7 +4,6 @@ import java.text.DecimalFormat;
 import java.util.LinkedList;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
-import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
 
 /**
  * @author Pingger
@@ -16,29 +15,20 @@ public class TPSMonitor extends Module implements Runnable
 	 * Holds the current TPS value of the TPSMonitor. -1 if no tps yet calculated or
 	 * if disabled.
 	 */
-	public static double		tps					= -1;
-	private static final String	cfgMessageLabel		= ServerToolsPlugin.buildKey(TPSMonitor.class, "message");
-	private static final String	cfgThresholdLabel	= ServerToolsPlugin.buildKey(TPSMonitor.class, "threshold");
-	private static final String	cfgWarningCooldown	= ServerToolsPlugin.buildKey(TPSMonitor.class, "warningCooldown");
-
-	/**
-	 * Ensures that the ConfigDefaults are set
-	 *
-	 * @param plg
-	 *            the {@link ServerToolsPlugin} calling
-	 */
-	public static void loadConfigDefaults(ServerToolsPlugin plg)
-	{
-		plg.ensureConfig(ServerToolsPlugin.buildKey(TPSMonitor.class, "enabled"), true, null);
-		plg.ensureConfig(ServerToolsPlugin.buildKey(TPSMonitor.class, "logging"), false, null);
-		plg.ensureConfig(cfgThresholdLabel, 19.5, "the tps limit, below which the warning is triggered");
-		plg.ensureConfig(cfgWarningCooldown, 5000, "delay (in ms) between warnings");
-		plg.ensureConfig(cfgMessageLabel, "[TPSMon] TPS drop! §4{1}§r/§620.0§r. Threshold: §6{2}§r", "{0}unused, {1}CurrentTPS, {2}TPSThreshold");
-	}
-
+	public static double		tps			= -1;
 	private long				lastNotify	= 0;
 
 	private LinkedList<Long>	list		= new LinkedList<>();
+
+	@Override
+	public void loadConfigDefaults()
+	{
+		ensureConfig("enabled", true, null);
+		ensureConfig("logging", false, null);
+		ensureConfig("threshold", 19.5, "the tps limit, below which the warning is triggered");
+		ensureConfig("warningCooldown", 5000, "delay (in ms) between warnings");
+		ensureConfig("message", "[TPSMon] TPS drop! §4{1}§r/§620.0§r. Threshold: §6{2}§r", "{0}unused, {1}CurrentTPS, {2}TPSThreshold");
+	}
 
 	@Override
 	public void onDisable()
@@ -62,14 +52,14 @@ public class TPSMonitor extends Module implements Runnable
 		if (list.size() == 20) {
 			tps = list.size() * 1e9 / (list.getLast() - list.getFirst());
 			//log(getClass(), list.getLast() / (long) 1e7 + "-" + list.getFirst() / (long) 1e7 + " => " + tps);
-			if (tps < stp.getConfig().getDouble(cfgThresholdLabel)
-					&& lastNotify + stp.getConfig().getInt(cfgWarningCooldown) < System.currentTimeMillis())
+			if (tps < getConfig().getDouble("threshold")
+					&& lastNotify + getConfig().getInt("warningCooldown") < System.currentTimeMillis())
 			{
 				lastNotify = System.currentTimeMillis();
-				String msg = stp.getConfig().getString(cfgMessageLabel);
+				String msg = getConfig().getString("message");
 				msg = msg
 						.replaceAll("\\{1\\}", new DecimalFormat("#0.0").format(tps))
-						.replaceAll("\\{2\\}", new DecimalFormat("#0.0").format(stp.getConfig().getDouble(cfgThresholdLabel)));
+						.replaceAll("\\{2\\}", new DecimalFormat("#0.0").format(getConfig().getDouble("threshold")));
 				stp.getServer().broadcastMessage(msg);
 			}
 		}

@@ -1,4 +1,4 @@
-package info.iskariot.pingger.java.bukkit.serverTools.sleepVote;
+package info.iskariot.pingger.java.bukkit.serverTools.tool;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -7,48 +7,21 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
-import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
 
 /**
  * The SleepVote Module
  *
  * @author Pingger
- *
+ * @version 0.2.0
+ * @since 2018-12-23
  */
 public class SleepVote extends Module implements Listener
 {
-	private static final String	cfgDayDelay				= ServerToolsPlugin.buildKey(SleepVote.class, "SuccessActionDelayTicks");
-	private static final String	cfgDayTime				= ServerToolsPlugin.buildKey(SleepVote.class, "SuccessActionDayTime");
-	private static final String	cfgMessageFailureLabel	= ServerToolsPlugin.buildKey(SleepVote.class, "FailureMessage");
-	private static final String	cfgMessageSuccessLabel	= ServerToolsPlugin.buildKey(SleepVote.class, "SuccessMessage");
-	private static final String	cfgThresholdLabel		= ServerToolsPlugin.buildKey(SleepVote.class, "SleepingThreshold");
-
-	/**
-	 * Ensures that the ConfigDefaults are set
-	 *
-	 * @param plg
-	 *            the {@link ServerToolsPlugin} calling
-	 */
-	public static void loadConfigDefaults(ServerToolsPlugin plg)
-	{
-		plg.ensureConfig(ServerToolsPlugin.buildKey(SleepVote.class, "enabled"), true, null);
-		plg.ensureConfig(ServerToolsPlugin.buildKey(SleepVote.class, "logging"), true, null);
-		plg.ensureConfig(cfgThresholdLabel, 0.5, "the minimum percentage sleeping to forward, from 0.0 to 1.0");
-		plg.ensureConfig(cfgDayDelay, 80, "the time in ticks change the time to " + cfgDayTime);
-		plg.ensureConfig(cfgDayTime, 23900, "the time to set on successful sleep vote");
-		plg
-				.ensureConfig(
-						cfgMessageFailureLabel,
-						"[SleepVote{0}] §6{2} sleeping.§r Need at least §4{3}§r",
-						"failure message, {0}logging info, {1}WorldName, {2}PercentSleeping, {3}PercentNeeded"
-				);
-		plg
-				.ensureConfig(
-						cfgMessageSuccessLabel,
-						"[SleepVote{0}] §2{2} sleeping. Forwarding night.§r",
-						"success message, {0}logging info, {1}WorldName, {2}PercentSleeping, {3}PercentNeeded"
-				);
-	}
+	private static final String	cfgDayDelay				= "SuccessActionDelayTicks";
+	private static final String	cfgDayTime				= "SuccessActionDayTime";
+	private static final String	cfgMessageFailureLabel	= "FailureMessage";
+	private static final String	cfgMessageSuccessLabel	= "SuccessMessage";
+	private static final String	cfgThresholdLabel		= "SleepingThreshold";
 
 	/**
 	 * Checks the sleep status for the given {@link World}
@@ -68,9 +41,9 @@ public class SleepVote extends Module implements Listener
 		// No one sleeping, no output
 		if (sleeping == 0 || playerCount <= 0) { return; }
 		String percentString = "" + (int) Math.floor(100.0 * sleeping / playerCount);
-		String percentNeededString = "" + (int) Math.ceil(100 * stp.getConfig().getDouble(cfgThresholdLabel, 0.5));
-		if (1.0 * sleeping / playerCount >= stp.getConfig().getDouble(cfgThresholdLabel, 0.5)) {
-			String msg = stp.getConfig().getString(cfgMessageSuccessLabel);
+		String percentNeededString = "" + (int) Math.ceil(100 * getConfig().getDouble(cfgThresholdLabel, 0.5));
+		if (1.0 * sleeping / playerCount >= getConfig().getDouble(cfgThresholdLabel, 0.5)) {
+			String msg = getConfig().getString(cfgMessageSuccessLabel);
 			msg = msg
 					.replaceAll("\\{0\\}", "")
 					.replaceAll("\\{1\\}", world.getName())
@@ -79,20 +52,20 @@ public class SleepVote extends Module implements Listener
 			for (Player p : world.getPlayers()) {
 				p.sendMessage(msg);
 			}
-			msg = stp.getConfig().getString(cfgMessageSuccessLabel);
+			msg = getConfig().getString(cfgMessageSuccessLabel);
 			msg = msg
 					.replaceAll("\\{0\\}", "." + world.getName())
 					.replaceAll("\\{1\\}", world.getName())
 					.replaceAll("\\{2\\}", percentString + "%")
 					.replaceAll("\\{3\\}", percentNeededString + "%");
-			log(SleepVote.class, msg.replaceAll("§[0-9a-fA-F]", ""));
+			log(msg);
 			stp
 					.getServer()
 					.getScheduler()
-					.scheduleSyncDelayedTask(stp, () -> world.setTime(stp.getConfig().getInt(cfgDayTime)), stp.getConfig().getInt(cfgDayDelay));
+					.scheduleSyncDelayedTask(stp, () -> world.setTime(getConfig().getInt(cfgDayTime)), getConfig().getInt(cfgDayDelay));
 		}
 		else {
-			String msg = stp.getConfig().getString(cfgMessageFailureLabel);
+			String msg = getConfig().getString(cfgMessageFailureLabel);
 			msg = msg
 					.replaceAll("\\{0\\}", "")
 					.replaceAll("\\{1\\}", world.getName())
@@ -101,14 +74,35 @@ public class SleepVote extends Module implements Listener
 			for (Player p : world.getPlayers()) {
 				p.sendMessage(msg);
 			}
-			msg = stp.getConfig().getString(cfgMessageFailureLabel);
+			msg = getConfig().getString(cfgMessageFailureLabel);
 			msg = msg
 					.replaceAll("\\{0\\}", "." + world.getName())
 					.replaceAll("\\{1\\}", world.getName())
 					.replaceAll("\\{2\\}", percentString + "%")
 					.replaceAll("\\{3\\}", percentNeededString + "%");
-			log(SleepVote.class, msg.replaceAll("§[0-9a-fA-F]", ""));
+			log(msg.replaceAll("§[0-9a-fA-F]", ""));
 		}
+	}
+
+	@Override
+	public void loadConfigDefaults()
+	{
+		super.loadConfigDefaults();
+		ensureConfig(cfgThresholdLabel, 0.5, "the minimum percentage sleeping to forward, from 0.0 to 1.0");
+		ensureConfig(cfgDayDelay, 80, "the time in ticks change the time to " + cfgDayTime);
+		ensureConfig(cfgDayTime, 23900, "the time to set on successful sleep vote");
+
+		ensureConfig(
+				cfgMessageFailureLabel,
+				"[SleepVote{0}] §6{2} sleeping.§r Need at least §4{3}§r",
+				"failure message, {0}logging info, {1}WorldName, {2}PercentSleeping, {3}PercentNeeded"
+		);
+
+		ensureConfig(
+				cfgMessageSuccessLabel,
+				"[SleepVote{0}] §2{2} sleeping. Forwarding night.§r",
+				"success message, {0}logging info, {1}WorldName, {2}PercentSleeping, {3}PercentNeeded"
+		);
 	}
 
 	@Override
@@ -120,6 +114,9 @@ public class SleepVote extends Module implements Listener
 	public void onEnable()
 	{
 		stp.getServer().getPluginManager().registerEvents(this, stp);
+		log("Required Level:" + (int) Math.ceil(100 * getConfig().getDouble(cfgThresholdLabel, 0.5)) + "%");
+		log("Delay:" + getConfig().getInt(cfgDayDelay) + " ticks");
+		log("Target Time:" + getConfig().getInt(cfgDayTime) + " DayTime-ticks");
 	}
 
 	/**
@@ -131,7 +128,7 @@ public class SleepVote extends Module implements Listener
 	@EventHandler
 	public void sleepListener(PlayerInteractEvent pie)
 	{
-		if (!stp.isEnabled()) { return; }
+		if (!stp.isEnabled(getClass())) { return; }
 		if (pie.getClickedBlock() != null) {
 			switch (pie.getClickedBlock().getBlockData().getMaterial())
 			{

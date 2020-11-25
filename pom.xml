@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>info.iskariot.pingger.java.bukkit</groupId>
 	<artifactId>ISG_ServerTools</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.4</version>
 	<name>ISG_ServerTools</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -51,6 +51,11 @@
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
 			<version>1.16.4-R0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.sejda.imageio</groupId>
+			<artifactId>webp-imageio</artifactId>
+			<version>0.1.6</version>
 		</dependency>
 	</dependencies>
 </project>
