@@ -6,6 +6,7 @@ import static info.iskariot.pingger.java.bukkit.serverTools.util.Formatting.form
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -21,11 +22,12 @@ import info.iskariot.pingger.java.bukkit.serverTools.util.Formatting;
 
 /**
  * @author Pingger
- * @version 1.0.0
+ * @version 1.1.0
  * @since 2020-11-24
  */
 public class FastPregenerator extends Module
 {
+	private LinkedList<Long>			chunkGenerationDuration			= new LinkedList<>();
 	private int							chunks							= 0;
 	private int							currentAnvilChunks				= 0;
 	private int							currentAnvilDuration			= 0;
@@ -39,6 +41,7 @@ public class FastPregenerator extends Module
 	private long						lastActualDuration				= 0;
 	private BukkitTask					previousTask;
 	private long						targetDuration					= 50;
+	private long						timebank						= 0;
 	private long						timeDiff						= 0;
 	private long						timeEnd							= 0;
 	private long						timeStart						= 0;
@@ -102,15 +105,19 @@ public class FastPregenerator extends Module
 	{
 		try {
 			timeStart = System.currentTimeMillis();
-
+			if (jobs.parallelStream().filter(job -> job.enabled && !job.isFinished()).count() == 0) { return; }
 			// Compute TargetDuration
 			timeDiff = timeStart - timeEnd;
 			if (timeDiff <= 0) {
-				log("TimeDiff too small: " + timeDiff + "ms");
+				// log("TimeDiff too small: " + timeDiff + "ms");
 				return;
 			}
 			targetDuration = 45 - timeDiff - Math.max(0, targetDuration - lastActualDuration);
+			// if timebank wasn't enough last tick, it won't be now with no additional time
 			if (targetDuration <= 0) { return; }
+
+			timebank += targetDuration;
+			debug(() -> "Timebank is now " + formatMilliseconds(timebank));
 
 			/*
 			 * If no Job is loaded and the finished signal (currentJobId=-1) was not
@@ -155,77 +162,100 @@ public class FastPregenerator extends Module
 			// elseif "all jobs finished"-signal is trigger -> return (or skip )
 			else if (currentJobId == -1) { return; }
 
-			//			debug(
-			//					() -> "Pregenerating in World " + w.getName() + " for ~" + String.format("%,2d", targetDuration) + "ms (Tick: "
-			//							+ String.format("%,4d", currentAnvilTicks) + ", Chunks in last Tick: " + String.format("%,3d", chunks) + ")"
-			//			);
 			chunks = 0;
-
+			double avgChunkGenerationDuration = chunkGenerationDuration
+					.size() > 0 ? chunkGenerationDuration.parallelStream().reduce(0l, (sum, add) -> sum + add) / 1000000.0
+							/ chunkGenerationDuration.size() : 0.0;
+			debug(() -> "Average Chunk Generation Duration is now " + formatMilliseconds((long) avgChunkGenerationDuration));
 			// Generate Chunks until Timeout or Limit or Anvil change
-			while (System.currentTimeMillis() - timeStart < targetDuration && currentJob.hasNextChunk()) {
-				// When no world is loaded, or an anvil change is detected -> (re-)load world, skip chunk generation until next execution
-				if (w == null || currentJob.nextChunk()) {
-					currentAnvilStart = System.currentTimeMillis();
-					currentAnvilTicks = 0;
-					currentAnvilChunks = 0;
-					currentAnvilDuration = 0;
-					chunks = 0;
-					w = currentJob.getCurrentWorld();
-					if (w == null) {
-						break;
+			while (currentJob.hasNextChunk() &&
+					(currentJob.aggressive && System.currentTimeMillis() - timeStart < targetDuration
+							|| !currentJob.aggressive
+									&& avgChunkGenerationDuration - timebank < 0))
+			{
+				long start = System.nanoTime();
+				try {
+					// When no world is loaded, or an anvil change is detected -> (re-)load world, skip chunk generation until next execution
+					if (w == null || currentJob.nextChunk()) {
+						currentAnvilStart = System.currentTimeMillis();
+						currentAnvilTicks = 0;
+						currentAnvilChunks = 0;
+						currentAnvilDuration = 0;
+						chunks = 0;
+						w = currentJob.getCurrentWorld();
+						if (w == null) {
+							break;
+						}
+						int anvilX = currentJob.offsetX + currentJob.regionX;
+						int anvilZ = currentJob.offsetZ + currentJob.regionZ;
+						log(
+								"Starting Pregeneration of Region " + formatAnvil(anvilX, anvilZ) + " in World " + formatWorld(w)
+						);
+						if (currentJob.isFinished()) {
+							break;
+						}
 					}
+					// If not a new world or anvil -> generate/verify a chunk
 					int anvilX = currentJob.offsetX + currentJob.regionX;
 					int anvilZ = currentJob.offsetZ + currentJob.regionZ;
-					log(
-							"Starting Pregeneration of Region " + formatAnvil(anvilX, anvilZ) + " in World " + formatWorld(w)
-					);
-					if (currentJob.isFinished()) {
-						break;
+					if (!w.isChunkGenerated(anvilX * 32 + currentJob.chunkX, anvilZ * 32 + currentJob.chunkZ)) {
+						w.loadChunk(anvilX * 32 + currentJob.chunkX, anvilZ * 32 + currentJob.chunkZ, true);
+						if (currentJob.dynmapRender) {
+							triggerRender(w, anvilX, anvilZ, currentJob.chunkX, currentJob.chunkZ);
+						}
+						chunks++;
 					}
-				}
-				// If not a new world or anvil -> generate/verify a chunk
-				int anvilX = currentJob.offsetX + currentJob.regionX;
-				int anvilZ = currentJob.offsetZ + currentJob.regionZ;
-				if (!w.isChunkGenerated(anvilX * 32 + currentJob.chunkX, anvilZ * 32 + currentJob.chunkZ)) {
-					w.getChunkAt(anvilX * 32 + currentJob.chunkX, anvilZ * 32 + currentJob.chunkZ);
-					if (currentJob.dynmapRender) {
+					else if (currentJob.dynmapRender && currentJob.dynmapRenderAll) {
+						w.loadChunk(anvilX * 32 + currentJob.chunkX, anvilZ * 32 + currentJob.chunkZ, false);
 						triggerRender(w, anvilX, anvilZ, currentJob.chunkX, currentJob.chunkZ);
 					}
-					chunks++;
-				}
-				else if (currentJob.dynmapRender && currentJob.dynmapRenderAll) {
-					triggerRender(w, anvilX, anvilZ, currentJob.chunkX, currentJob.chunkZ);
-				}
-				// if the current Chunk is the last in the current Anvil, do statistics
-				if (currentJob.isLastInAnvil()) {
-					long fullduration = System.currentTimeMillis() - currentAnvilStart;
-					// Accumulate Statistics
-					currentAnvilTicks++;
-					currentAnvilChunks += chunks;
-					lastActualDuration = System.currentTimeMillis() - timeStart;
-					currentAnvilDuration += lastActualDuration;
-					if (currentAnvilChunks > 0) {
-						log("Finished Pregenerating Region: " + formatAnvil(anvilX, anvilZ));
-						log("in World:                      " + formatWorld(w));
-						fine("Took:                          " + formatMilliseconds(fullduration));
-						fine("                               " + currentAnvilTicks + " Ticks");
-						fine("Time spent Generating Chunks:  " + formatMilliseconds(currentAnvilDuration));
-						fine(
-								"                               " + formatMilliseconds(currentAnvilDuration / currentAnvilChunks)
-										+ " per Chunk"
-						);
-						fine(
-								"                               " + Math.round(1000.0 * currentAnvilDuration / fullduration) / 10.0
-										+ "% Time-Efficiency"
-						);
-						fine("Generated Chunks:              " + currentAnvilChunks + " Chunks");
+					// if the current Chunk is the last in the current Anvil, do statistics
+					if (currentJob.isLastInAnvil()) {
+						for (int x = 0; x < 31; x++) {
+							for (int z = 0; z < 31; z++) {
+								w.unloadChunk(x, z);
+							}
+						}
+						triggerRender(w, anvilX, anvilZ);
+						long fullduration = System.currentTimeMillis() - currentAnvilStart;
+						// Accumulate Statistics
+						currentAnvilTicks++;
+						currentAnvilChunks += chunks;
+						lastActualDuration = System.currentTimeMillis() - timeStart;
+						currentAnvilDuration += lastActualDuration;
+						if (currentAnvilChunks > 0) {
+							log("Finished Pregenerating Region: " + formatAnvil(anvilX, anvilZ));
+							log("in World:                      " + formatWorld(w));
+							fine("Took:                          " + formatMilliseconds(fullduration));
+							fine("                               " + currentAnvilTicks + " Ticks");
+							fine("Time spent Generating Chunks:  " + formatMilliseconds(currentAnvilDuration));
+							fine(
+									"                               " + formatMilliseconds(currentAnvilDuration / currentAnvilChunks)
+											+ " per Chunk"
+							);
+							fine(
+									"                               " + Math.round(1000.0 * currentAnvilDuration / fullduration) / 10.0
+											+ "% Time-Efficiency"
+							);
+							fine("Generated Chunks:              " + currentAnvilChunks + " Chunks");
+							fine("Current Timebank:              " + formatMilliseconds(timebank));
+							fine("Current Time per Chunk:        " + formatMilliseconds((long) avgChunkGenerationDuration) + " per Chunk");
+						}
+						else {
+							log(
+									"Verified Region " + formatAnvil(anvilX, anvilZ) + " in " + formatWorld(w) + Formatting.FC_DARK_Gray
+											+ " over " + currentAnvilTicks + " Ticks"
+							);
+						}
 					}
-					else {
-						log(
-								"Verified Region " + formatAnvil(anvilX, anvilZ) + " in " + formatWorld(w) + Formatting.FC_DARK_Gray
-										+ " over " + currentAnvilTicks + " Ticks"
-						);
+				}
+				finally {
+					while (chunkGenerationDuration.size() > 200) {
+						chunkGenerationDuration.removeFirst();
 					}
+					chunkGenerationDuration.addLast(System.nanoTime() - start);
+					timebank = timebank - chunkGenerationDuration.getLast() / 1_000_000;
+					debug(() -> "Timebank is now " + formatMilliseconds(timebank));
 				}
 			}
 			debug(() -> "Generated " + chunks + " this Tick. Now at " + currentJob.chunkX + ":" + currentJob.chunkZ);
@@ -292,6 +322,31 @@ public class FastPregenerator extends Module
 	 *            the anvil the chunk is in (X coordinate)
 	 * @param anvilZ
 	 *            the anvil the chunk is in (Z coordinate)
+	 */
+	protected void triggerRender(World world, int anvilX, int anvilZ)
+	{
+		int x = anvilX * 32 * 16;
+		int z = anvilZ * 32 * 16;
+		if (dynmapPlugin != null && dynmapPlugin.isEnabled()) {
+			try {
+				//(String wid, int minx, int miny, int minz, int maxx, int maxy, int maxz)
+				dynmap_triggerRenderOfVolume.invoke(dynmapPlugin, world.getName(), x, 0, z, x + 511, 255, z + 511);
+			}
+			catch (Exception e) {
+				log("Couldn't request render of chunk!", e);
+			}
+		}
+	}
+
+	/**
+	 * Triggers rendering the given chunk
+	 *
+	 * @param world
+	 *            the world the chunk is in
+	 * @param anvilX
+	 *            the anvil the chunk is in (X coordinate)
+	 * @param anvilZ
+	 *            the anvil the chunk is in (Z coordinate)
 	 * @param chunkX
 	 *            the X coordinate within the anvil
 	 * @param chunkZ
@@ -320,6 +375,8 @@ public class FastPregenerator extends Module
 	 */
 	protected class FastPregenerationJob
 	{
+		/** whether aggressive pregeneration should be used */
+		public boolean		aggressive		= false;
 		/** whether this job should block startup */
 		public boolean		blocking		= false;
 		/** the current chunk X coordinate within the current anvil */
@@ -428,6 +485,12 @@ public class FastPregenerator extends Module
 					false,
 					"Prevents the Server from finishing startup until this pregeneration Job is finished. This also means, that the server does not accept commands or client connections."
 			);
+			ensureConfig(
+					cfg,
+					"aggressive",
+					false,
+					"When true, at least 1 chunk is generated each tick. otherwise the measured duration to generate a chunk is taken into account and causes some ticks to be skipped to prevent the server from lagging. (blocking-mode overrides this setting to true)"
+			);
 			ensureConfig(cfg, "startX", 0, "Start Anvil (512x512 Blockarea) X-Coordinate");
 			ensureConfig(cfg, "startZ", 0, "Start Anvil (512x512 Blockarea) Z-Coordinate");
 			ensureConfig(cfg, "radius", 0, "Radius to generate");
@@ -448,6 +511,7 @@ public class FastPregenerator extends Module
 			chunkZ = 0;
 			enabled = cfg.getBoolean("enabled");
 			blocking = cfg.getBoolean("blocking");
+			aggressive = cfg.getBoolean("aggressive");
 			dynmapRender = cfg.getBoolean("updateDynmap");
 			dynmapRenderAll = cfg.getBoolean("updateDynmapOnVerify");
 			offsetX = cfg.getInt("startX");
@@ -486,6 +550,10 @@ public class FastPregenerator extends Module
 			if (chunkX == 32) {
 				chunkX = 0;
 				chunkZ = 0;
+				long lastX = regionX;
+				long lastZ = regionZ;
+				reload();
+				if (lastX != regionX || lastZ != regionZ) { return true; }
 				if (regionX >= -regionZ && regionX <= regionZ) {
 					regionX--;
 				}
@@ -531,6 +599,7 @@ public class FastPregenerator extends Module
 			ConfigurationSection cfg = getConfig(getConfig("jobs"), label);
 			cfg.set("enabled", enabled);
 			cfg.set("blocking", blocking);
+			cfg.set("aggressive", aggressive);
 			cfg.set("updateDynmap", dynmapRender);
 			cfg.set("updateDynmapOnVerify", dynmapRenderAll);
 			cfg.set("startX", offsetX);
