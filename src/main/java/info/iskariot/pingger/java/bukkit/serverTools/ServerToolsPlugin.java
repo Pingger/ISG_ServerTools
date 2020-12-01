@@ -1,8 +1,12 @@
 package info.iskariot.pingger.java.bukkit.serverTools;
 
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -45,6 +49,8 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 		return cl.getCanonicalName() + "." + key;
 	}
 
+	private HashMap<String, CommandInterface> knownSubcommands = new HashMap<>();
+
 	/**
 	 * Returns if the given module should be enabled. if the Plugin is disabled, the
 	 * modules should also be disabled
@@ -57,6 +63,13 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	public boolean isEnabled(Class<? extends Module> module)
 	{
 		return isEnabled() && getConfig().getBoolean(ServerToolsPlugin.buildKey(module, "enabled"), true);
+	}
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
+	{
+		// TODO Auto-generated method stub
+		return super.onCommand(sender, command, label, args);
 	}
 
 	@Override
@@ -78,6 +91,7 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	@Override
 	public void onEnable()
 	{
+		knownSubcommands.clear();
 		reloadConfig();
 		saveConfig();
 		for (Class<? extends Module> mc : modules) {
@@ -88,6 +102,14 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 					m.setServerToolsPlugin(this);
 					m.loadConfigDefaults();
 					m.onEnable();
+					if (m instanceof CommandInterface) {
+						String[] labels = ((CommandInterface) m).getLabel();
+						if (labels != null) {
+							for (String l : labels) {
+								knownSubcommands.put(l.toLowerCase().intern(), (CommandInterface) m);
+							}
+						}
+					}
 					loadedModules.add(m);
 				}
 				catch (IllegalStateException ise) {
@@ -107,5 +129,12 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	{
 		getLogger().info("Loading Iskariot Gaming's Server Tools Plugin...");
 		getLogger().info("Loaded!");
+	}
+
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args)
+	{
+		// TODO Auto-generated method stub
+		return super.onTabComplete(sender, command, alias, args);
 	}
 }
