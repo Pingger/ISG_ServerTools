@@ -8,5 +8,9 @@ import info.iskariot.pingger.java.bukkit.serverTools.Module;
  */
 public abstract class APIImplementation extends Module
 {
-
+	/**
+	 * @return <code>true</code> if this API is available and enabled,
+	 *         <code>false</code> otherwise
+	 */
+	public abstract boolean isAvailable();
 }
