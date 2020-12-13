@@ -5,6 +5,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
 
@@ -52,12 +55,6 @@ public class SleepVote extends Module implements Listener
 			for (Player p : world.getPlayers()) {
 				p.sendMessage(msg);
 			}
-			msg = getConfig().getString(cfgMessageSuccessLabel);
-			msg = msg
-					.replaceAll("\\{0\\}", "." + world.getName())
-					.replaceAll("\\{1\\}", world.getName())
-					.replaceAll("\\{2\\}", percentString + "%")
-					.replaceAll("\\{3\\}", percentNeededString + "%");
 			log(msg);
 			stp
 					.getServer()
@@ -74,12 +71,6 @@ public class SleepVote extends Module implements Listener
 			for (Player p : world.getPlayers()) {
 				p.sendMessage(msg);
 			}
-			msg = getConfig().getString(cfgMessageFailureLabel);
-			msg = msg
-					.replaceAll("\\{0\\}", "." + world.getName())
-					.replaceAll("\\{1\\}", world.getName())
-					.replaceAll("\\{2\\}", percentString + "%")
-					.replaceAll("\\{3\\}", percentNeededString + "%");
 			log(msg.replaceAll("§[0-9a-fA-F]", ""));
 		}
 	}
@@ -117,6 +108,40 @@ public class SleepVote extends Module implements Listener
 		log("Required Level:" + (int) Math.ceil(100 * getConfig().getDouble(cfgThresholdLabel, 0.5)) + "%");
 		log("Delay:" + getConfig().getInt(cfgDayDelay) + " ticks");
 		log("Target Time:" + getConfig().getInt(cfgDayTime) + " DayTime-ticks");
+	}
+
+	/**
+	 * @param pqe
+	 *            {@link PlayerJoinEvent}
+	 */
+	public void onPlayerConnect(PlayerJoinEvent pqe)
+	{
+		stp.getServer().getScheduler().scheduleSyncDelayedTask(stp, () -> checkSleep(pqe.getPlayer().getWorld()), 1);
+	}
+
+	/**
+	 * @param pqe
+	 *            {@link PlayerQuitEvent}
+	 */
+	@EventHandler
+	public void onPlayerDisconnect(PlayerQuitEvent pqe)
+	{
+		stp.getServer().getScheduler().scheduleSyncDelayedTask(stp, () -> checkSleep(pqe.getPlayer().getWorld()), 1);
+	}
+
+	/**
+	 *
+	 * @param pte
+	 *            {@link PlayerTeleportEvent}
+	 */
+	@EventHandler
+	public void onPlayerTeleport(PlayerTeleportEvent pte)
+	{
+		if (!pte.getTo().getWorld().equals(pte.getFrom().getWorld())) {
+			stp.getServer().getScheduler().scheduleSyncDelayedTask(stp, () -> checkSleep(pte.getFrom().getWorld()), 1);
+			stp.getServer().getScheduler().scheduleSyncDelayedTask(stp, () -> checkSleep(pte.getTo().getWorld()), 1);
+		}
+
 	}
 
 	/**
