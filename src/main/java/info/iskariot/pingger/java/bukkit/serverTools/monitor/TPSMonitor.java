@@ -61,6 +61,7 @@ public class TPSMonitor extends Module implements Runnable
 						.replaceAll("\\{1\\}", new DecimalFormat("#0.0").format(tps))
 						.replaceAll("\\{2\\}", new DecimalFormat("#0.0").format(getConfig().getDouble("threshold")));
 				stp.getServer().broadcastMessage(msg);
+				stp.reloadConfig();
 			}
 		}
 
