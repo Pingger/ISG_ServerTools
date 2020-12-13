@@ -29,11 +29,12 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 
 			// monitors
 			TPSMonitor.class,
-
+			// Teams
+			TeamsModule.class,
 			// tools
 			FastPregenerator.class,
 			// IdlePregenerator.class,
-			// LootablesGenerator.class,
+			LootablesGenerator.class,
 			SleepVote.class,
 			VillagerAntiKill.class
 	};
