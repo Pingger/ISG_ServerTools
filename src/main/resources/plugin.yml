@@ -1,0 +1,12 @@
+name: ISG_ServerTools
+main: info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin
+version: ${project.version}
+author: Pingger Shikkoken (_Pingger_)
+api-version: 1.16
+softdepend: [dynmap]
+commands:
+   ist:
+      description: Iskariot Server Tools Main Command
+      usage: /ist help or /ist ?
+      permission: ist.use
+      permission-message: You don't have ist.use
