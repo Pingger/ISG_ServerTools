@@ -37,3 +37,9 @@ At the moment this Plugin is entirely controlled by the configuration File.
    - [ ] ...
  - [ ] (Dyn-)map Structure Finder
  - [x] TPSMonitor (rework pending)
+ 
+### Long-Term-Aims
+ - Dynmap alternative
+ - Some way for proper Unit-Testing. Ideas:
+   - Implement Custom-Classes
+   - run a normal server and issue a 'unit-test'-command, that outputs XML-Files with results (hacky ... don't really want to got this route)
