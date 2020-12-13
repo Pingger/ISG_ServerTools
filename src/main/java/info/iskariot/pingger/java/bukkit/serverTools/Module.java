@@ -10,7 +10,8 @@ import org.bukkit.configuration.ConfigurationSection;
  * Abstract class for Modules
  *
  * @author Pingger
- *
+ * @version 1.3.0
+ * @since 0.0.1
  */
 public abstract class Module
 {
