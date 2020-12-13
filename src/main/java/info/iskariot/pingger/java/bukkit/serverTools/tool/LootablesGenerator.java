@@ -1,9 +1,12 @@
 package info.iskariot.pingger.java.bukkit.serverTools.tool;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import org.bukkit.configuration.ConfigurationSection;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
-import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
+import info.iskariot.pingger.java.bukkit.serverTools.tool.lootableGenerator.LootableEntry;
 
 /**
  *
@@ -12,18 +15,43 @@ import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
  */
 public class LootablesGenerator extends Module
 {
-	private static final String	CONFIG_AREAS			= ServerToolsPlugin.buildKey(LootablesGenerator.class, "areas");
-	private static final String	CONFIG_SAVED_INVETORIES	= ServerToolsPlugin.buildKey(LootablesGenerator.class, "storedChests");
-	private static final String	CONFIG_TABLES			= ServerToolsPlugin.buildKey(LootablesGenerator.class, "lootTables");
 
+	private HashMap<LootableEntry, Long>	lastRun				= new HashMap<>();
+	private HashMap<LootableEntry, Integer>	scheduledEntries	= new HashMap<>();
+
+	/**
+	 * The repeating cron job
+	 */
+	public void cron()
+	{
+		ArrayList<LootableEntry> es = new ArrayList<>(scheduledEntries.keySet());
+		es.stream().forEach(e -> {
+			if (!lastRun.containsKey(e) || lastRun.get(e) != System.currentTimeMillis() / scheduledEntries.get(e) * 60 * 1000) {
+				e.onUpdateLoot();
+				lastRun.put(e, System.currentTimeMillis() / scheduledEntries.get(e) * 60 * 1000);
+			}
+		});
+		stp.getServer().getScheduler().runTaskLater(stp, () -> cron(), 200);
+	}
+
+	/**
+	 *
+	 * @param name
+	 *            the of the LootableEntry
+	 * @return The config for the given LootableEntry
+	 */
+	public ConfigurationSection getEntryConfig(String name)
+	{
+		return getConfig(getLootablesConfig(), name);
+	}
+
+	@SuppressWarnings("unused")
 	@Override
 	public void loadConfigDefaults()
 	{
 		ensureConfig("enabled", false, null);
 		ensureConfig("logging", true, null);
-		ensureConfig(CONFIG_SAVED_INVETORIES, new String[] {
-				"0:0:0"
-		}, "Remembers created loot-chests for after restarts. (e.g. for auto delete)");
+		new LootableEntry("example", this);
 		/*
 		 * plg.ensureConfig(CONFIG_AREAS, new String[]
 		 * {"0:0:0to0:0:0#mincnt:0,maxcnt:0,minfreq:0,maxfreq:0"}, null);
@@ -73,37 +101,73 @@ public class LootablesGenerator extends Module
 		 * "village_toolsmith: 100"
 		 * }, null);
 		 */
-		if (!getConfig().isConfigurationSection(CONFIG_AREAS)) {
-			getConfig().createSection(CONFIG_AREAS);
-		}
 
-		ConfigurationSection s = getConfig().getConfigurationSection(CONFIG_AREAS);
-		s.set("exampleArea.enabled", false);
-		s.set("exampleArea.type", "area");
-		s.set("exampleArea.areaStart", "0:0:0");
-		s.set("exampleArea.areaEnd", "0:0:0");
-		s.set("exampleArea.minCount", "0");
-		s.set("exampleArea.maxCount", "0");
-		s.set("exampleArea.regenerateInterval", "1h");
-		s.set("exampleArea.autoDeleteOld", true);
-		s.set("exampleArea.autoDeleteOldTimeout", "2h");
-		s.set("exampleArea.alignToRTC", true);
-		s.set("exampleArea.rememberedChests", new String[0]);
+		//		ConfigurationSection s = getConfig().getConfigurationSection(CONFIG_AREAS);
+		//		s.set("exampleArea.enabled", false);
+		//		s.set("exampleArea.type", "area");
+		//		s.set("exampleArea.areaStart", "0:0:0");
+		//		s.set("exampleArea.areaEnd", "0:0:0");
+		//		s.set("exampleArea.minCount", "0");
+		//		s.set("exampleArea.maxCount", "0");
+		//		s.set("exampleArea.regenerateInterval", "1h");
+		//		s.set("exampleArea.autoDeleteOld", true);
+		//		s.set("exampleArea.autoDeleteOldTimeout", "2h");
+		//		s.set("exampleArea.alignToRTC", true);
+		//		s.set("exampleArea.rememberedChests", new String[0]);
 
 	}
 
 	@Override
 	public void onDisable()
 	{
-		// TODO Auto-generated method stub
 	}
 
 	@Override
 	public void onEnable()
 	{
 		//stp.getServer().getLootTable(null).fillInventory(inventory, random, context);
-		// TODO Auto-generated method stub
+		ConfigurationSection lootables = getLootablesConfig();
+		for (String label : lootables.getKeys(false)) {
+			super.log("Loading LootablesGenerator Job: " + label);
+			lastRun.put(new LootableEntry(label, this), 0l);
+		}
+		stp.getServer().getScheduler().runTaskLater(stp, () -> cron(), 0);
+	}
 
+	/**
+	 * schedules a {@link LootableEntry}
+	 *
+	 * @param lootableEntry
+	 *            the Entry to schedule
+	 * @param interval
+	 *            the interval in minutes
+	 */
+	public void schedule(LootableEntry lootableEntry, int interval)
+	{
+		if (interval <= 0) {
+			scheduledEntries.put(lootableEntry, 1);
+			return;
+		}
+		scheduledEntries.put(lootableEntry, interval);
+	}
+
+	/**
+	 * Sends a warning message
+	 *
+	 * @param message
+	 *            the warning message
+	 */
+	public void warn(String message)
+	{
+		log("[WARN] " + message);
+	}
+
+	/**
+	 * @return the {@link ConfigurationSection} for the Lootables
+	 */
+	protected ConfigurationSection getLootablesConfig()
+	{
+		return getConfig("lootables");
 	}
 
 }
