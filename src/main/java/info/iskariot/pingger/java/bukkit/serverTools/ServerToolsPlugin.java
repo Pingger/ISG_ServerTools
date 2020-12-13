@@ -11,9 +11,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import info.iskariot.pingger.java.bukkit.serverTools.monitor.TPSMonitor;
+import info.iskariot.pingger.java.bukkit.serverTools.teams.TeamsModule;
 import info.iskariot.pingger.java.bukkit.serverTools.tool.FastPregenerator;
+import info.iskariot.pingger.java.bukkit.serverTools.tool.LootablesGenerator;
 import info.iskariot.pingger.java.bukkit.serverTools.tool.SleepVote;
 import info.iskariot.pingger.java.bukkit.serverTools.tool.VillagerAntiKill;
+import info.iskariot.pingger.java.bukkit.serverTools.util.Formatting;
 
 /**
  * @author Pingger
@@ -52,6 +55,30 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	private HashMap<String, CommandInterface> knownSubcommands = new HashMap<>();
 
 	/**
+	 * Enables the given Module
+	 *
+	 * @param m
+	 *            the Module to enable
+	 */
+	public void enableModule(Module m)
+	{
+		getLogger().info(Formatting.FC_DARK_YELLOW + "Enabling:     §r" + m.getClass().getCanonicalName());
+		m.setServerToolsPlugin(this);
+		m.loadConfigDefaults();
+		m.onEnable();
+		if (m instanceof CommandInterface) {
+			String[] labels = ((CommandInterface) m).getLabel();
+			if (labels != null) {
+				for (String l : labels) {
+					knownSubcommands.put(l.toLowerCase().intern(), (CommandInterface) m);
+				}
+			}
+		}
+		loadedModules.add(m);
+		getLogger().info(Formatting.FC_DARK_GREEN + "Enabled:      §r" + m.getClass().getCanonicalName());
+	}
+
+	/**
 	 * Returns if the given module should be enabled. if the Plugin is disabled, the
 	 * modules should also be disabled
 	 *
@@ -63,6 +90,30 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	public boolean isEnabled(Class<? extends Module> module)
 	{
 		return isEnabled() && getConfig().getBoolean(ServerToolsPlugin.buildKey(module, "enabled"), true);
+	}
+
+	/**
+	 *
+	 * @param mc
+	 *            the class of Moudle to load and possibly enable
+	 */
+	public void loadAndEnableModule(Class<? extends Module> mc)
+	{
+		try {
+			getLogger().info(Formatting.FC_DARK_YELLOW + "Constructing: §r" + mc.getCanonicalName());
+			Module m = mc.getConstructor().newInstance();
+			m.setServerToolsPlugin(this);
+			m.loadConfigDefaults();
+			if (m.getConfig().getBoolean("enabled", true)) {
+				enableModule(m);
+			}
+		}
+		catch (IllegalStateException ise) {
+			getLogger().log(Level.SEVERE, Formatting.FC_DARK_RED + "Module couldn't be loaded!" + ise.toString());
+		}
+		catch (Throwable e) {
+			getLogger().log(Level.SEVERE, Formatting.FC_DARK_RED + "Module couldn't be loaded!", e);
+		}
 	}
 
 	@Override
@@ -95,30 +146,7 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 		reloadConfig();
 		saveConfig();
 		for (Class<? extends Module> mc : modules) {
-			if (getConfig().getBoolean(buildKey(mc, "enabled"), true)) {
-				try {
-					getLogger().info("§2Enabling: §r" + mc.getCanonicalName());
-					Module m = mc.getConstructor().newInstance();
-					m.setServerToolsPlugin(this);
-					m.loadConfigDefaults();
-					m.onEnable();
-					if (m instanceof CommandInterface) {
-						String[] labels = ((CommandInterface) m).getLabel();
-						if (labels != null) {
-							for (String l : labels) {
-								knownSubcommands.put(l.toLowerCase().intern(), (CommandInterface) m);
-							}
-						}
-					}
-					loadedModules.add(m);
-				}
-				catch (IllegalStateException ise) {
-					getLogger().log(Level.SEVERE, "§4Module couldn't be loaded!" + ise.toString());
-				}
-				catch (Throwable e) {
-					getLogger().log(Level.SEVERE, "§4Module couldn't be loaded!", e);
-				}
-			}
+			loadAndEnableModule(mc);
 		}
 		saveConfig();
 		getLogger().info("§2§lEnabled!");
