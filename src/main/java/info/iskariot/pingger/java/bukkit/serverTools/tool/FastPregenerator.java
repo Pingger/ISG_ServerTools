@@ -13,10 +13,13 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.bukkit.World;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
 
+import info.iskariot.pingger.java.bukkit.serverTools.CommandInterface;
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
 import info.iskariot.pingger.java.bukkit.serverTools.util.Formatting;
 
@@ -25,7 +28,7 @@ import info.iskariot.pingger.java.bukkit.serverTools.util.Formatting;
  * @version 1.1.0
  * @since 2020-11-24
  */
-public class FastPregenerator extends Module
+public class FastPregenerator extends Module implements CommandInterface
 {
 	private LinkedList<Long>			chunkGenerationDuration			= new LinkedList<>();
 	private int							chunks							= 0;
@@ -48,6 +51,19 @@ public class FastPregenerator extends Module
 	private World						w								= null;
 
 	@Override
+	public boolean getHelp(CommandSender sender, Command command, String label, String[] args)
+	{
+		return false;
+	}
+
+	@Override
+	public String[] getLabel()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
 	public void loadConfigDefaults()
 	{
 		super.loadConfigDefaults();
@@ -55,6 +71,13 @@ public class FastPregenerator extends Module
 		ensureConfig("debug", false, null);
 		FastPregenerationJob exampleJob = new FastPregenerationJob("exampleJob");
 		exampleJob.save();
+	}
+
+	@Override
+	public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
+	{
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 	@Override
@@ -96,6 +119,13 @@ public class FastPregenerator extends Module
 			}
 			log("Dynmap detected!");
 		}
+	}
+
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args)
+	{
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/**
