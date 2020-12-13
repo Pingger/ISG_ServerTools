@@ -15,28 +15,6 @@ import org.bukkit.configuration.ConfigurationSection;
 public abstract class Module
 {
 	/**
-	 * @param cfg
-	 *            The {@link ConfigurationSection} to get the Sub-Section from
-	 * @param key
-	 *            the Key of the Configuration to get
-	 * @return The Sub-Configuration for this Module
-	 */
-	protected static ConfigurationSection getConfigSection(ConfigurationSection cfg, String key)
-	{
-		ConfigurationSection cs = cfg.getConfigurationSection(key);
-
-		if (cs == null) {
-			cs = cfg.createSection(key);
-		}
-		return cs;
-	}
-
-	/**
-	 * The ServerToolsPlugin, to be set in onEnable
-	 */
-	protected ServerToolsPlugin stp;
-
-	/**
 	 * Ensures, that the given Key is set.
 	 *
 	 * @param config
@@ -48,7 +26,7 @@ public abstract class Module
 	 * @param desc
 	 *            The Description for this node
 	 */
-	public void ensureConfig(ConfigurationSection config, String key, boolean def, String desc)
+	public static void ensureConfig(ConfigurationSection config, String key, boolean def, String desc)
 	{
 		if (desc != null && !desc.trim().isEmpty()) {
 			config.set(key + "_Desc", desc);
@@ -69,7 +47,7 @@ public abstract class Module
 	 * @param desc
 	 *            The Description for this node
 	 */
-	public void ensureConfig(ConfigurationSection config, String key, double def, String desc)
+	public static void ensureConfig(ConfigurationSection config, String key, double def, String desc)
 	{
 		if (desc != null && !desc.trim().isEmpty()) {
 			config.set(key + "_Desc", desc);
@@ -90,7 +68,7 @@ public abstract class Module
 	 * @param desc
 	 *            The Description for this node
 	 */
-	public void ensureConfig(ConfigurationSection config, String key, int def, String desc)
+	public static void ensureConfig(ConfigurationSection config, String key, int def, String desc)
 	{
 		if (desc != null && !desc.trim().isEmpty()) {
 			config.set(key + "_Desc", desc);
@@ -112,7 +90,7 @@ public abstract class Module
 	 * @param desc
 	 *            The Description for this node
 	 */
-	public void ensureConfig(ConfigurationSection config, String key, List<String> def, String desc)
+	public static void ensureConfig(ConfigurationSection config, String key, List<String> def, String desc)
 	{
 		if (desc != null && !desc.trim().isEmpty()) {
 			config.set(key + "_Desc", desc);
@@ -135,7 +113,7 @@ public abstract class Module
 	 * @param desc
 	 *            The Description for this node
 	 */
-	public void ensureConfig(ConfigurationSection config, String key, long def, String desc)
+	public static void ensureConfig(ConfigurationSection config, String key, long def, String desc)
 	{
 		if (desc != null && !desc.trim().isEmpty()) {
 			config.set(key + "_Desc", desc);
@@ -156,7 +134,7 @@ public abstract class Module
 	 * @param desc
 	 *            The Description for this node
 	 */
-	public void ensureConfig(ConfigurationSection config, String key, String def, String desc)
+	public static void ensureConfig(ConfigurationSection config, String key, String def, String desc)
 	{
 		if (desc != null && !desc.trim().isEmpty()) {
 			config.set(key + "_Desc", desc);
@@ -178,7 +156,7 @@ public abstract class Module
 	 * @param desc
 	 *            The Description for this node
 	 */
-	public void ensureConfig(ConfigurationSection config, String key, String[] def, String desc)
+	public static void ensureConfig(ConfigurationSection config, String key, String[] def, String desc)
 	{
 		if (desc != null && !desc.trim().isEmpty()) {
 			config.set(key + "_Desc", desc);
@@ -188,6 +166,28 @@ public abstract class Module
 		}
 		config.addDefault(key, def);
 	}
+
+	/**
+	 * @param cfg
+	 *            The {@link ConfigurationSection} to get the Sub-Section from
+	 * @param key
+	 *            the Key of the Configuration to get
+	 * @return The Sub-Configuration for this Module
+	 */
+	protected static ConfigurationSection getConfigSection(ConfigurationSection cfg, String key)
+	{
+		ConfigurationSection cs = cfg.getConfigurationSection(key);
+
+		if (cs == null) {
+			cs = cfg.createSection(key);
+		}
+		return cs;
+	}
+
+	/**
+	 * The ServerToolsPlugin, to be set in onEnable
+	 */
+	protected ServerToolsPlugin stp;
 
 	/**
 	 * Ensures, that the given Key is set.
@@ -295,6 +295,23 @@ public abstract class Module
 	}
 
 	/**
+	 * @return The Configuration for this Module
+	 */
+	public ConfigurationSection getConfig()
+	{
+		if (stp != null) { return getConfigSection(stp.getConfig(), getClass().getCanonicalName()); }
+		return null;
+	}
+
+	/**
+	 * @return the parent {@link ServerToolsPlugin}
+	 */
+	public ServerToolsPlugin getServerToolsPlugin()
+	{
+		return stp;
+	}
+
+	/**
 	 * @return if this Module is supposed to be enabled
 	 */
 	public final boolean isEnabled()
@@ -374,15 +391,6 @@ public abstract class Module
 		if (getConfig().getBoolean("logging", true) && (getConfig().getBoolean("fine", false) || getConfig().getBoolean("debug", false))) {
 			stp.getLogger().info("[" + getClass().getSimpleName() + "] §8" + line.get());
 		}
-	}
-
-	/**
-	 * @return The Configuration for this Module
-	 */
-	protected ConfigurationSection getConfig()
-	{
-		if (stp != null) { return getConfigSection(stp.getConfig(), getClass().getCanonicalName()); }
-		return null;
 	}
 
 	/**
