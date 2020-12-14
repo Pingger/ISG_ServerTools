@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -144,9 +145,17 @@ public class Team
 			pje.getPlayer().setCustomName("§" + getTextColor() + pje.getPlayer().getName() + "§r");
 			pje.getPlayer().setCustomNameVisible(true);
 
-			if (pje.getPlayer().getBedSpawnLocation() == null) {
-				if (spawnLocation != null) {
-					pje.getPlayer().setBedSpawnLocation(spawnLocation, true);
+			// When no spawn location is set and a team spawn exists, set spawnpoint to team-spawn
+			if (pje.getPlayer().getBedSpawnLocation() == null && spawnLocation != null) {
+				pje.getPlayer().setBedSpawnLocation(spawnLocation, true);
+				// When also first join, teleport to team-spawn
+				if (pje.getPlayer().getStatistic(Statistic.LEAVE_GAME) == 0 || pje.getPlayer().getInventory().isEmpty()) {
+					pje.getPlayer().teleport(spawnLocation);
+					parent
+							.getServerToolsPlugin()
+							.getServer()
+							.getScheduler()
+							.runTaskLater(parent.getServerToolsPlugin(), () -> pje.getPlayer().teleport(spawnLocation), 2);
 				}
 			}
 		}

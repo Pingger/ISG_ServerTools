@@ -158,6 +158,7 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	{
 		getLogger().info("Loading Iskariot Gaming's Server Tools Plugin...");
 		getLogger().info("Loaded!");
+		super.reloadConfig();
 	}
 
 	@Override
@@ -165,5 +166,13 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	{
 		// TODO Auto-generated method stub
 		return super.onTabComplete(sender, command, alias, args);
+	}
+
+	@Override
+	public void reloadConfig()
+	{
+		getServer().getScheduler().runTaskAsynchronously(this, () -> {
+			super.reloadConfig();
+		});
 	}
 }
