@@ -189,9 +189,10 @@ public abstract class Module
 	 * The ServerToolsPlugin, to be set in onEnable
 	 */
 	protected ServerToolsPlugin	stp;
-	private boolean				debug;
-	private boolean				fine;
-	private boolean				logging;
+	private boolean				debug	= false;
+	private boolean				enabled	= false;
+	private boolean				fine	= false;
+	private boolean				logging	= true;
 
 	/**
 	 * Ensures, that the given Key is set.
@@ -321,13 +322,13 @@ public abstract class Module
 	public final boolean isEnabled()
 	{
 		if (stp == null) { return false; }
-		return stp.isEnabled() && getConfig().getBoolean("enabled");
+		return stp.isEnabled() && enabled;
 	}
 
 	/**
 	 * @return <code>true</code> if fine logging is enabled.
-	 * @apiNote {@link #isLogging()} might return false, in which case the
-	 *          {@link #fine} methods don't output
+	 * @apiNote {@link #isLogging()} might return <code>false</code>, in which case
+	 *          the {@link #fine} methods don't output
 	 */
 	public boolean isFineLogging()
 	{
@@ -357,6 +358,8 @@ public abstract class Module
 	 */
 	public void onConfigReload()
 	{
+		// TODO call onEnable / onDisable when this changes
+		enabled = getConfig().getBoolean("enabled", enabled);
 		debug = getConfig().getBoolean("debug", false);
 		fine = debug || getConfig().getBoolean("fine", false);
 		logging = debug || getConfig().getBoolean("logging", true);
