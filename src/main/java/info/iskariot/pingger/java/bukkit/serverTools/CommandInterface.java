@@ -1,9 +1,6 @@
 package info.iskariot.pingger.java.bukkit.serverTools;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.*;
 
 /**
  * @author Pingger
@@ -33,4 +30,45 @@ public interface CommandInterface extends CommandExecutor, TabCompleter
 	 * @return the Label(s) of the subcommand
 	 */
 	public String[] getLabel();
+
+	/**
+	 * Returns the most specific PermissionNode required to execute the given
+	 * Command
+	 *
+	 * @param sender
+	 *            the Command Sender
+	 * @param command
+	 *            the command
+	 * @param label
+	 *            the label
+	 * @param args
+	 *            the args
+	 * @return the PermissionNode
+	 */
+	public String getPermissionNode(CommandSender sender, Command command, String label, String[] args);
+
+	/**
+	 * @param newOffset
+	 *            the offset to set
+	 */
+	public void setArgOffset(int newOffset);
+
+	/**
+	 * Returns the String Permission, or an explanation of what is required to
+	 * execute the given Command
+	 *
+	 * @param sender
+	 *            the Command Sender
+	 * @param command
+	 *            the command
+	 * @param label
+	 *            the label
+	 * @param args
+	 *            the args
+	 * @return the PermissionNode or Explanation
+	 */
+	default String getRequiredPermission(CommandSender sender, Command command, String label, String[] args)
+	{
+		return "You need Permission: " + getPermissionNode(sender, command, label, args);
+	}
 }
