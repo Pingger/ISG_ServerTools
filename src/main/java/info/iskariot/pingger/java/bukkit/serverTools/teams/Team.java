@@ -19,6 +19,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scoreboard.Team.Option;
 import org.bukkit.scoreboard.Team.OptionStatus;
 
@@ -181,6 +182,51 @@ public class Team
 			if (ple.getPlayer().getBedSpawnLocation() == null) {
 				if (spawnLocation != null) {
 					ple.getPlayer().setBedSpawnLocation(spawnLocation, true);
+				}
+			}
+		}
+	}
+
+	/**
+	 *
+	 * @param pme
+	 *            PlayerMoveEvent
+	 * @deprecated this is just an ugly fix for area protection
+	 */
+	// FIXME remove
+	@Deprecated
+	public void onPlayerMove(PlayerMoveEvent pme)
+	{
+		if (pme.getPlayer().isOp()) { return; }
+		if (pme.getTo().getWorld().equals(spawnLocation.getWorld())) {
+			if (!isPartOfTeam(pme.getPlayer())) {
+				int x = pme.getTo().getBlockX();
+				int z = pme.getTo().getBlockZ();
+				if (spawnLocation.getBlockX() - 512 < x && spawnLocation.getBlockX() + 512 > x
+						&& spawnLocation.getBlockZ() - 512 < z && spawnLocation.getBlockZ() + 512 > z)
+				{
+					pme.setCancelled(true);
+					pme.getPlayer().teleport(pme.getFrom());
+					x = pme.getFrom().getBlockX();
+					z = pme.getFrom().getBlockZ();
+					pme
+							.getPlayer()
+							.sendMessage(
+									"§4Since the Spawn-Protection is not available yet, you are not allowed to enter the other Teams Spawn-Area!"
+							);
+					if (spawnLocation.getBlockX() - 512 < x && spawnLocation.getBlockX() + 512 > x
+							&& spawnLocation.getBlockZ() - 512 < z && spawnLocation.getBlockZ() + 512 > z)
+					{
+						parent
+								.getServerToolsPlugin()
+								.getServer()
+								.getScheduler()
+								.runTaskLater(
+										parent.getServerToolsPlugin(),
+										() -> pme.getPlayer().teleport(pme.getPlayer().getBedSpawnLocation()),
+										1
+								);
+					}
 				}
 			}
 		}
