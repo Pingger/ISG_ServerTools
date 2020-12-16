@@ -16,6 +16,12 @@ public class TPSMonitor extends Module implements Runnable
 	 * if disabled.
 	 */
 	public static double		tps			= -1;
+	/** Holds TPS over last 1200 ticks (1 minute) */
+	public static double		tps1200		= -1;
+	/** Holds TPS over last 20 ticks (1 second) */
+	public static double		tps20		= -1;
+	/** Holds TPS over last 200 ticks (10 seconds) */
+	public static double		tps200		= -1;
 	private long				lastNotify	= 0;
 
 	private LinkedList<Long>	list		= new LinkedList<>();
@@ -45,13 +51,8 @@ public class TPSMonitor extends Module implements Runnable
 	@Override
 	public void run()
 	{
-		list.add(System.nanoTime());
-		while (list.size() > 20) {
-			list.removeFirst();
-		}
-		if (list.size() == 20) {
-			tps = list.size() * 1e9 / (list.getLast() - list.getFirst());
-			//log(getClass(), list.getLast() / (long) 1e7 + "-" + list.getFirst() / (long) 1e7 + " => " + tps);
+		onTick();
+		if (tps20 >= 0) {
 			if (tps < getConfig().getDouble("threshold")
 					&& lastNotify + getConfig().getInt("warningCooldown") < System.currentTimeMillis())
 			{
@@ -67,6 +68,32 @@ public class TPSMonitor extends Module implements Runnable
 
 		if (stp.isEnabled()) {
 			stp.getServer().getScheduler().runTaskLater(stp, () -> run(), 1);
+		}
+	}
+
+	private void onTick()
+	{
+		list.add(System.nanoTime());
+		while (list.size() > 1200) {
+			list.removeFirst();
+		}
+		if (list.size() >= 20) {
+			tps20 = list.getLast() - list.get(list.size() - 20);
+			tps20 /= 1e9;
+			tps20 *= 20;
+			tps = tps20;
+		}
+		if (list.size() >= 200) {
+			tps200 = list.getLast() - list.get(list.size() - 200);
+			tps200 /= 1e9;
+			tps200 /= 10;
+			tps200 *= 20;
+		}
+		if (list.size() >= 1200) {
+			tps1200 = list.getLast() - list.get(list.size() - 1200);
+			tps1200 /= 1e9;
+			tps1200 /= 60;
+			tps1200 *= 20;
 		}
 	}
 }
