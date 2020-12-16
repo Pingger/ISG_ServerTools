@@ -135,6 +135,8 @@ public class Team
 		updateTeam();
 		if (isPartOfTeam(pje.getPlayer())) {
 			org.bukkit.scoreboard.Team t = getBukkitTeam();
+			parent.log("Members.contains: " + members.contains(pje.getPlayer()));
+			parent.log("Members contains UUID: " + members.stream().anyMatch(op -> op.getUniqueId().equals(pje.getPlayer().getUniqueId())));
 			t.addEntry(pje.getPlayer().getName());
 			pje
 					.setJoinMessage(
@@ -170,6 +172,8 @@ public class Team
 	public void onPlayerLogin(PlayerLoginEvent ple)
 	{
 		if (isPartOfTeam(ple.getPlayer())) {
+			parent.log("Members.contains: " + members.contains(ple.getPlayer()));
+			parent.log("Members contains UUID: " + members.stream().anyMatch(op -> op.getUniqueId().equals(ple.getPlayer().getUniqueId())));
 			parent.getServerToolsPlugin().getServer().getWhitelistedPlayers().add(ple.getPlayer());
 			ple.getPlayer().setWhitelisted(true);
 			ple.allow();
