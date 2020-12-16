@@ -359,7 +359,7 @@ public abstract class Module
 	{
 		debug = getConfig().getBoolean("debug", false);
 		fine = debug || getConfig().getBoolean("fine", false);
-		logging = debug || isLogging();
+		logging = debug || getConfig().getBoolean("logging", true);
 	}
 
 	/**
