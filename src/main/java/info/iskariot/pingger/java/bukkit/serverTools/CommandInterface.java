@@ -48,6 +48,15 @@ public interface CommandInterface extends CommandExecutor, TabCompleter
 	public String getPermissionNode(CommandSender sender, Command command, String label, String[] args);
 
 	/**
+	 * A simple String for the Commands usage in the format: <br>
+	 * &lt;required&gt; [optional]<br>
+	 * Do not add the 'Label' ... it will be added automatically
+	 *
+	 * @return the Usage String
+	 */
+	public String getUsage();
+
+	/**
 	 * @param newOffset
 	 *            the offset to set
 	 */
@@ -70,5 +79,14 @@ public interface CommandInterface extends CommandExecutor, TabCompleter
 	default String getRequiredPermission(CommandSender sender, Command command, String label, String[] args)
 	{
 		return "You need Permission: " + getPermissionNode(sender, command, label, args);
+	}
+
+	/**
+	 * @return a single line as short as possible Description like in the spigot
+	 *         <code>help</code> command
+	 */
+	default String getShortHelp()
+	{
+		return null;
 	}
 }

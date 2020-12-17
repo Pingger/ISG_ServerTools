@@ -25,13 +25,16 @@ public class CommandHelper implements CommandInterface
 	protected int									argOffset				= 0;
 
 	protected SortedMap<String, CommandInterface>	subCommands;
+	protected SortedSet<CommandInterface>			subCommandsSet;
 
 	private boolean									subCommandAliasCreated	= false;
 
 	public CommandHelper(String... aliases)
 	{
+		if (aliases == null || aliases.length == 0) { throw new IllegalArgumentException("Need to provide at least 1 alias!"); }
 		this.aliases = aliases;
 		subCommands = new TreeMap<>();
+		subCommandsSet = new TreeSet<>((a, b) -> a.getLabel()[0].compareTo(b.getLabel()[0]));
 	}
 
 	/**
@@ -42,23 +45,53 @@ public class CommandHelper implements CommandInterface
 	 */
 	public synchronized void addSubCommand(CommandInterface ci)
 	{
-		for (String alias : ci.getLabel()) {
-			String a = alias.toLowerCase();
-			if (subCommands.containsKey(a)) {
-				log.info("Overwriting alias \"" + a + (subCommandAliasCreated ? "\" Aliases had been created" : "\""));
-				subCommands.put(a, ci);
+		if (subCommandsSet.add(ci)) {
+			for (String alias : ci.getLabel()) {
+				String a = alias.toLowerCase();
+				if (subCommands.containsKey(a)) {
+					log.info("Overwriting alias \"" + a + (subCommandAliasCreated ? "\" Aliases had been created" : "\""));
+					subCommands.put(a, ci);
+				}
 			}
-		}
-		if (subCommandAliasCreated) {
-			rebuildSubCommandAliases();
+			if (subCommandAliasCreated) {
+				rebuildSubCommandAliases();
+			}
 		}
 	}
 
 	@Override
 	public boolean getHelp(CommandSender sender, Command command, String label, String[] args)
 	{
-		// TODO Auto-generated method stub
-		return false;
+		// No Subcommand given,
+		// or ?,
+		// or h,
+		// or help
+		// or unknown Subcommand
+		if (args.length <= argOffset
+				|| args[argOffset].equals("?")
+				|| args[argOffset].equalsIgnoreCase("h")
+				|| args[argOffset].equalsIgnoreCase("help")
+				|| getSubcommand(sender, command, label, args) == null)
+		{
+			sender.sendMessage("Command Category: " + FC_DARK_YELLOW + args[argOffset - 1] + FC_RESET);
+			if (getShortHelp() != null) {
+				sender.sendMessage(getShortHelp());
+			}
+			sender.sendMessage("SubCommands:");
+			for (CommandInterface ci : subCommandsSet) {
+				sender
+						.sendMessage(
+								"  " + FC_DARK_YELLOW + ci.getLabel()[0] + FC_DARK_AQUA
+										+ (ci.getUsage() != null && !ci.getUsage().isBlank() ? " " + ci.getUsage() : "") + FC_RESET
+										+ (ci.getShortHelp() == null ? ": " + ci.getShortHelp() : "")
+						);
+			}
+			return true;
+		}
+		// else the Subcommand exists
+		CommandInterface ci = getSubcommand(sender, command, label, args);
+		ci.setArgOffset(argOffset + 1);
+		return ci.getHelp(sender, command, label, args);
 	}
 
 	@Override
@@ -72,6 +105,12 @@ public class CommandHelper implements CommandInterface
 	{
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public String getUsage()
+	{
+		return "?";
 	}
 
 	@Override
@@ -101,12 +140,8 @@ public class CommandHelper implements CommandInterface
 	public synchronized void rebuildSubCommandAliases()
 	{
 		subCommandAliasCreated = false;
-		Set<CommandInterface> subs = new HashSet<>();
-		for (CommandInterface ci : subCommands.values()) {
-			subs.add(ci);
-		}
 		subCommands.clear();
-		for (CommandInterface ci : subs) {
+		for (CommandInterface ci : subCommandsSet) {
 			addSubCommand(ci);
 		}
 	}
