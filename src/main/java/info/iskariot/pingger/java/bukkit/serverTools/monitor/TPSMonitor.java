@@ -89,10 +89,10 @@ public class TPSMonitor extends Module implements Runnable
 			}
 		}
 		// Update and write-back the other settings
+		message = getConfig().getString("message");
 		threshold = getConfig().getDouble("threshold");
 		warningCooldown = ConfigParser.loadDuration(getConfig().getString("warningCooldown"), Duration.ofSeconds(5));
 		getConfig().set("warningCooldown", ConfigParser.storeDuration(warningCooldown));
-		message = getConfig().getString("message");
 	}
 
 	@Override
@@ -141,7 +141,8 @@ public class TPSMonitor extends Module implements Runnable
 				list.removeFirst();
 			}
 			if (list.size() > interval) {
-				double newTPS = 20 * (list.getLast() - list.getFirst()) / (1e9 * interval / 20);
+				// Would normally need to divide the interval by 20, but to get back to TPS I need to multiply by 20
+				double newTPS = 1e9 * interval / (list.getLast() - list.getFirst());
 				tpsMap.put(interval, newTPS);
 			}
 		}
