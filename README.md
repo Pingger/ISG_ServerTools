@@ -1,7 +1,7 @@
 # ISG_ServerTools
 
 *Please read and respect the License.*  
-This Project is intended for my own needs of functions on spigot servers (it initially started as a project for a bukkit server). There is quite a bit **explorative Programming** involved, but I try to keep an eye on Security.
+This Project is intended for my own needs of functions on spigot servers (it initially started as a project for a bukkit server). There is quite a bit of **explorative Programming** involved, but I try to keep an eye on Security.
 
 At the moment this Plugin is entirely controlled by the configuration File.
 
