@@ -1,11 +1,13 @@
 package info.iskariot.pingger.java.bukkit.serverTools.monitor;
 
 import java.text.DecimalFormat;
+import java.time.Duration;
 import java.util.*;
 
 import org.bukkit.command.CommandSender;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
+import info.iskariot.pingger.java.bukkit.serverTools.util.ConfigParser;
 
 /**
  * @author Pingger
@@ -36,9 +38,15 @@ public class TPSMonitor extends Module implements Runnable
 		}
 	}
 
-	private long	lastDebug	= 0;
+	private long		lastDebug		= 0;
 
-	private long	lastNotify	= 0;
+	private long		lastNotify		= 0;
+
+	private String		message			= "{1}/20 ({2})";
+
+	private double		threshold		= 15;
+
+	private Duration	warningCooldown	= Duration.ofSeconds(5);
 
 	@Override
 	public void loadConfigDefaults()
@@ -46,7 +54,11 @@ public class TPSMonitor extends Module implements Runnable
 		ensureConfig("enabled", true, null);
 		ensureConfig("logging", false, null);
 		ensureConfig("threshold", 19.5, "the tps limit, below which the warning is triggered");
-		ensureConfig("warningCooldown", 5000, "delay (in ms) between warnings");
+		ensureConfig(
+				"warningCooldown",
+				ConfigParser.storeDuration(Duration.ofSeconds(5)),
+				"delay (as Duration, no unit == milliseconds) between warnings"
+		);
 		ensureConfig("message", "[TPSMon] TPS drop! §4{1}§r/§620.0§r. Threshold: §6{2}§r", "{0}unused, {1}CurrentTPS, {2}TPSThreshold");
 		ensureConfig("intervals", new String[] {
 				"20", "200", "1200"
@@ -76,6 +88,11 @@ public class TPSMonitor extends Module implements Runnable
 				tpsMap.remove(i);
 			}
 		}
+		// Update and write-back the other settings
+		threshold = getConfig().getDouble("threshold");
+		warningCooldown = ConfigParser.loadDuration(getConfig().getString("warningCooldown"), Duration.ofSeconds(5));
+		getConfig().set("warningCooldown", ConfigParser.storeDuration(warningCooldown));
+		message = getConfig().getString("message");
 	}
 
 	@Override
@@ -96,14 +113,14 @@ public class TPSMonitor extends Module implements Runnable
 	{
 		onTick();
 		if (tps >= 0) {
-			if (tps < getConfig().getDouble("threshold")
-					&& lastNotify + getConfig().getInt("warningCooldown") < System.currentTimeMillis())
+			if (tps < threshold
+					&& lastNotify + warningCooldown.toMillis() < System.currentTimeMillis())
 			{
 				lastNotify = System.currentTimeMillis();
-				String msg = getConfig().getString("message");
+				String msg = message;
 				msg = msg
 						.replaceAll("\\{1\\}", new DecimalFormat("#0.0").format(tps))
-						.replaceAll("\\{2\\}", new DecimalFormat("#0.0").format(getConfig().getDouble("threshold")));
+						.replaceAll("\\{2\\}", new DecimalFormat("#0.0").format(threshold));
 				stp.getServer().broadcastMessage(msg);
 				stp.reloadConfig();
 			}
