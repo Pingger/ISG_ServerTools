@@ -1,5 +1,6 @@
 package info.iskariot.pingger.java.bukkit.serverTools.util;
 
+import org.bukkit.Location;
 import org.bukkit.World;
 
 /**
@@ -66,6 +67,11 @@ public class Formatting
 	public static String formatAnvil(int x, int z)
 	{
 		return FC_DARK_YELLOW + String.format("A(% ,4d,% ,4d)", x, z) + FC_RESET;
+	}
+
+	public static String formatLocation(Location location)
+	{
+		return formatWorld(location.getWorld()) + String.format("[%.2f:%.2f:%.2f]", location.getX(), location.getY(), location.getZ());
 	}
 
 	/**
