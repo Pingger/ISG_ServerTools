@@ -1,12 +1,16 @@
 package info.iskariot.pingger.java.bukkit.serverTools.tool;
 
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
+import java.util.HashSet;
+
+import org.bukkit.entity.Player;
+import org.bukkit.event.*;
+import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
+import info.iskariot.pingger.java.bukkit.serverTools.util.Formatting;
 
 /**
  * Dumps the Players inventory and Death Drops to console, when it dies.
@@ -17,10 +21,18 @@ import info.iskariot.pingger.java.bukkit.serverTools.Module;
 public class DeathInventoryDumper extends Module implements Listener
 {
 
+	private HashSet<Player> players = new HashSet<>();
+
 	@Override
 	public void loadConfigDefaults()
 	{
 		ensureConfig("enabled", true, "Dumps the Players inventory and Death Drops to console, when it dies.");
+	}
+
+	@Override
+	public void onConfigReload()
+	{
+		super.onConfigReload();
 	}
 
 	@Override
@@ -35,14 +47,23 @@ public class DeathInventoryDumper extends Module implements Listener
 		stp.getServer().getPluginManager().registerEvents(this, stp);
 	}
 
+	@EventHandler
+	public void onItemDropped(EntityDropItemEvent edie)
+	{
+		if (players.contains(edie.getEntity())) {
+			log("Would prevent " + edie.getItemDrop().toString() + " at " + edie.getEntity().getLocation());
+		}
+	}
+
 	/**
 	 * @param pde
 	 *            {@link PlayerDeathEvent}
 	 */
-	@EventHandler
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onPlayerDeath(PlayerDeathEvent pde)
 	{
 		if (isEnabled()) {
+			log("Player died: " + pde.getEntity().getName() + " at " + Formatting.formatLocation(pde.getEntity().getLocation()));
 			try {
 				Inventory inv = pde.getEntity().getInventory();
 				for (ItemStack is : inv.getContents()) {
@@ -60,6 +81,7 @@ public class DeathInventoryDumper extends Module implements Listener
 				log("Something went wrong dumping a players Inventory!", exc);
 			}
 		}
+		players.add(pde.getEntity());
+		stp.getServer().getScheduler().runTaskLater(stp, () -> players.remove(pde.getEntity()), 2);
 	}
-
 }
