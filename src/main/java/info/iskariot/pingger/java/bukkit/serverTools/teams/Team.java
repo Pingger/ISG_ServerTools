@@ -1,25 +1,12 @@
 package info.iskariot.pingger.java.bukkit.serverTools.teams;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Statistic;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.scoreboard.Team.Option;
 import org.bukkit.scoreboard.Team.OptionStatus;
 
@@ -30,6 +17,11 @@ import info.iskariot.pingger.java.bukkit.serverTools.teams.events.PlayerJoinedTe
  *
  * @author Pingger
  *
+ */
+/*
+ * TODO: Map<Player,Set<Team>>
+ * TODO: Team-Allegiances
+ * TODO: Protection
  */
 public class Team
 {
@@ -90,7 +82,7 @@ public class Team
 	 */
 	public boolean isPartOfTeam(OfflinePlayer p)
 	{
-		return members.contains(p) || members.parallelStream().anyMatch(op -> op.getUniqueId().equals(p.getUniqueId()));
+		return members.contains(p);
 	}
 
 	/**
@@ -136,8 +128,6 @@ public class Team
 		updateTeam();
 		if (isPartOfTeam(pje.getPlayer())) {
 			org.bukkit.scoreboard.Team t = getBukkitTeam();
-			parent.log("Members.contains: " + members.contains(pje.getPlayer()));
-			parent.log("Members contains UUID: " + members.stream().anyMatch(op -> op.getUniqueId().equals(pje.getPlayer().getUniqueId())));
 			t.addEntry(pje.getPlayer().getName());
 			pje
 					.setJoinMessage(
@@ -173,8 +163,6 @@ public class Team
 	public void onPlayerLogin(PlayerLoginEvent ple)
 	{
 		if (isPartOfTeam(ple.getPlayer())) {
-			parent.log("Members.contains: " + members.contains(ple.getPlayer()));
-			parent.log("Members contains UUID: " + members.stream().anyMatch(op -> op.getUniqueId().equals(ple.getPlayer().getUniqueId())));
 			parent.getServerToolsPlugin().getServer().getWhitelistedPlayers().add(ple.getPlayer());
 			ple.getPlayer().setWhitelisted(true);
 			ple.allow();
@@ -193,7 +181,7 @@ public class Team
 	 *            PlayerMoveEvent
 	 * @deprecated this is just an ugly fix for area protection
 	 */
-	// FIXME remove
+	// FIXME remove, when Protection is properly implemented and replace this with this Protection
 	@Deprecated
 	public void onPlayerMove(PlayerMoveEvent pme)
 	{
@@ -202,8 +190,8 @@ public class Team
 			if (!isPartOfTeam(pme.getPlayer())) {
 				int x = pme.getTo().getBlockX();
 				int z = pme.getTo().getBlockZ();
-				if (spawnLocation.getBlockX() - 512 < x && spawnLocation.getBlockX() + 512 > x
-						&& spawnLocation.getBlockZ() - 512 < z && spawnLocation.getBlockZ() + 512 > z)
+				if (spawnLocation.getBlockX() - 1024 < x && spawnLocation.getBlockX() + 1024 > x
+						&& spawnLocation.getBlockZ() - 1024 < z && spawnLocation.getBlockZ() + 1024 > z)
 				{
 					pme.setCancelled(true);
 					pme.getPlayer().teleport(pme.getFrom());
@@ -214,8 +202,8 @@ public class Team
 							.sendMessage(
 									"§4Since the Spawn-Protection is not available yet, you are not allowed to enter the other Teams Spawn-Area!"
 							);
-					if (spawnLocation.getBlockX() - 512 < x && spawnLocation.getBlockX() + 512 > x
-							&& spawnLocation.getBlockZ() - 512 < z && spawnLocation.getBlockZ() + 512 > z)
+					if (spawnLocation.getBlockX() - 1024 < x && spawnLocation.getBlockX() + 1024 > x
+							&& spawnLocation.getBlockZ() - 1024 < z && spawnLocation.getBlockZ() + 1024 > z)
 					{
 						parent
 								.getServerToolsPlugin()
@@ -257,6 +245,7 @@ public class Team
 			spawnLocation = spawnLocation.add(0.5, 0.5, 0.5);
 		}
 		List<String> ms = cs.getStringList("members");
+		members.clear();
 		ms.forEach(m -> members.add(parent.getServerToolsPlugin().getServer().getOfflinePlayer(UUID.fromString(m))));
 		updateTeam();
 	}

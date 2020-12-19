@@ -1,15 +1,11 @@
 package info.iskariot.pingger.java.bukkit.serverTools.tool;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Villager;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.plugin.RegisteredListener;
@@ -24,7 +20,11 @@ import info.iskariot.pingger.java.bukkit.serverTools.Module;
 public class VillagerAntiKill extends Module implements Listener
 {
 
-	private HashSet<UUID> resets = new HashSet<>();
+	private int				minVillagers	= 0;
+
+	private double			radius			= 0;
+
+	private HashSet<UUID>	resets			= new HashSet<>();
 
 	@Override
 	public void loadConfigDefaults()
@@ -44,6 +44,8 @@ public class VillagerAntiKill extends Module implements Listener
 			resets.add(UUID.fromString(uuid));
 		}
 		getConfig().set("resetVillagers", resets.stream().map(u -> u.toString()).toArray());
+		radius = getConfig().getDouble("radius");
+		minVillagers = getConfig().getInt("minVillagers");
 	}
 
 	@Override
@@ -74,10 +76,8 @@ public class VillagerAntiKill extends Module implements Listener
 		if (isEnabled()) {
 			if (ede.getEntityType() != null && ede.getEntityType().equals(EntityType.VILLAGER)) {
 				Location l = ede.getEntity().getLocation();
-				double r = getConfig().getDouble("radius");
-				if (l.getWorld().getNearbyEntities(l, r, r, r, e -> e.getType().equals(EntityType.VILLAGER)).size() < getConfig()
-						.getInt("minVillagers"))
-				{
+				double r = radius;
+				if (l.getWorld().getNearbyEntities(l, r, r, r, e -> e.getType().equals(EntityType.VILLAGER)).size() < minVillagers) {
 					log(
 							() -> "Cancelling Damage to " + ede.getEntity().toString() + "; Cause: " + ede.getCause().toString() + "; Amount: "
 									+ ede.getDamage()
