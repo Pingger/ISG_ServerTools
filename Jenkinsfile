@@ -17,10 +17,10 @@ node {
     }
     stage('Results') {
         junit allowEmptyResults: true, testResults: '**/target/surefire-reports/TEST-*.xml'
-        recordIssues(tools: [mavenConsole()])
-        recordIssues(tools: [java()])
-        recordIssues(tools: [javaDoc()])
-        recordIssues(tools: [junitParser(pattern: '**/target/surefire-reports/TEST-*.xml')])
+        recordIssues(healthy: 1, unhealthy: 10, qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]], tools: [mavenConsole()])
+        recordIssues(healthy: 1, unhealthy: 10, qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]], tools: [java()])
+        recordIssues(healthy: 1, unhealthy: 10, qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]], tools: [javaDoc()])
+        recordIssues(healthy: 1, unhealthy: 10, qualityGates: [[threshold: 1, type: 'TOTAL', unstable: true]], tools: [junitParser(pattern: '**/target/surefire-reports/TEST-*.xml')])
         archiveArtifacts allowEmptyArchive: true, artifacts: 'target/*.jar', fingerprint: true
     }
 }
