@@ -98,11 +98,12 @@ public class Formatting
 	 *
 	 * @param location
 	 *            the location to format
-	 * @return a String for the location like this "formatWorld() x.##:y.##:z.##"
+	 * @return a String for the location like this "formatWorld()
+	 *         formatShortLocation()"
 	 */
 	public static String formatLocation(Location location)
 	{
-		return formatWorld(location.getWorld()) + String.format("[%.2f:%.2f:%.2f]", location.getX(), location.getY(), location.getZ());
+		return formatWorld(location.getWorld()) + formatShortLocation(location);
 	}
 
 	/**
@@ -129,6 +130,18 @@ public class Formatting
 	public static String formatMilliseconds(long ms, int align)
 	{
 		return String.format("%," + align + "d", ms) + "ms";
+	}
+
+	/**
+	 * Format only the coordinates of the given location
+	 *
+	 * @param location
+	 *            the location to format
+	 * @return x.## y.## z.##
+	 */
+	public static String formatShortLocation(Location location)
+	{
+		return String.format("[%.2f:%.2f:%.2f]", location.getX(), location.getY(), location.getZ());
 	}
 
 	/**

@@ -4,10 +4,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.*;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
 
@@ -60,6 +57,14 @@ public class SleepVote extends Module implements Listener
 					.getServer()
 					.getScheduler()
 					.scheduleSyncDelayedTask(stp, () -> world.setTime(getConfig().getInt(cfgDayTime)), getConfig().getInt(cfgDayDelay));
+			if (!world.isClearWeather()) {
+				stp.getServer().getScheduler().scheduleSyncDelayedTask(stp, () -> {
+					world.setWeatherDuration(0);
+					world.setClearWeatherDuration(0);
+					world.setThundering(false);
+					world.setStorm(false);
+				});
+			}
 		}
 		else {
 			String msg = getConfig().getString(cfgMessageFailureLabel);

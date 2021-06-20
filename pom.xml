@@ -51,7 +51,7 @@
 		</repository>
 		<repository>
 			<id>mikeprimm.com</id>
-			<url>http://repo.mikeprimm.com/</url>
+			<url>https://repo.mikeprimm.com/</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -59,6 +59,7 @@
 			<groupId>org.spigotmc</groupId>
 			<artifactId>spigot-api</artifactId>
 			<version>1.16.4-R0.1-SNAPSHOT</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.sejda.imageio</groupId>
