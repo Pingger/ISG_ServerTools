@@ -17,6 +17,10 @@ node {
     }
     stage('Results') {
         junit allowEmptyResults: true, testResults: '**/target/surefire-reports/TEST-*.xml'
+        recordIssues(tools: [mavenConsole()])
+        recordIssues(tools: [java()])
+        recordIssues(tools: [javaDoc()])
+        recordIssues(tools: [junitParser(pattern: '**/target/surefire-reports/TEST-*.xml')])
         archiveArtifacts allowEmptyArchive: true, artifacts: 'target/*.jar', fingerprint: true
     }
 }
