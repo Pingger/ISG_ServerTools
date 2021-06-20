@@ -291,9 +291,11 @@ public class Team
 	protected void updateTeam()
 	{
 		org.bukkit.scoreboard.Team t = getBukkitTeam();
-		t.setColor(ChatColor.getByChar(getConfig().getString("teamColorCode").charAt(0)));
-		t.setCanSeeFriendlyInvisibles(getConfig().getBoolean("canSeeFriendlyInvisibles"));
-		t.setAllowFriendlyFire(getConfig().getBoolean("friendlyFire"));
+		t.setColor(ChatColor.getByChar(getConfig().getString("teamColorCode", "f").charAt(0)));
+		t.setCanSeeFriendlyInvisibles(getConfig().getBoolean("canSeeFriendlyInvisibles", true));
+		t.setAllowFriendlyFire(getConfig().getBoolean("friendlyFire", true));
 		t.setOption(Option.NAME_TAG_VISIBILITY, OptionStatus.valueOf(getConfig().getString("nameTagVisibility", "FOR_OWN_TEAM")));
+		t.setPrefix("§" + getConfig().getString("teamColorCode", "f").charAt(0));
+		t.setSuffix("§r");
 	}
 }

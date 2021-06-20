@@ -175,7 +175,7 @@ public abstract class Module
 	 *            the Key of the Configuration to get
 	 * @return The Sub-Configuration for this Module
 	 */
-	protected static ConfigurationSection getConfigSection(ConfigurationSection cfg, String key)
+	public static ConfigurationSection getConfigSection(ConfigurationSection cfg, String key)
 	{
 		ConfigurationSection cs = cfg.getConfigurationSection(key);
 

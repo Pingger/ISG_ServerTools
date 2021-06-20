@@ -1,14 +1,9 @@
 package info.iskariot.pingger.java.bukkit.serverTools.tool;
 
-import static info.iskariot.pingger.java.bukkit.serverTools.util.Formatting.formatAnvil;
-import static info.iskariot.pingger.java.bukkit.serverTools.util.Formatting.formatMilliseconds;
-import static info.iskariot.pingger.java.bukkit.serverTools.util.Formatting.formatWorld;
+import static info.iskariot.pingger.java.bukkit.serverTools.util.Formatting.*;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -58,6 +53,20 @@ public class FastPregenerator extends Module implements CommandInterface
 
 	@Override
 	public String[] getLabel()
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getPermissionNode(CommandSender sender, Command command, String label, String[] args)
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getUsage()
 	{
 		// TODO Auto-generated method stub
 		return null;
@@ -311,6 +320,13 @@ public class FastPregenerator extends Module implements CommandInterface
 			}
 			timeEnd = System.currentTimeMillis();
 		}
+	}
+
+	@Override
+	public void setArgOffset(int newOffset)
+	{
+		// TODO Auto-generated method stub
+
 	}
 
 	@Override

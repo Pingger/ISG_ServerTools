@@ -1,21 +1,21 @@
 package info.iskariot.pingger.java.bukkit.serverTools;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.time.Duration;
+import java.util.*;
 import java.util.logging.Level;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import info.iskariot.pingger.java.bukkit.serverTools.monitor.TPSMonitor;
 import info.iskariot.pingger.java.bukkit.serverTools.teams.TeamsModule;
-import info.iskariot.pingger.java.bukkit.serverTools.tool.FastPregenerator;
-import info.iskariot.pingger.java.bukkit.serverTools.tool.LootablesGenerator;
-import info.iskariot.pingger.java.bukkit.serverTools.tool.SleepVote;
-import info.iskariot.pingger.java.bukkit.serverTools.tool.VillagerAntiKill;
+import info.iskariot.pingger.java.bukkit.serverTools.tool.*;
+import info.iskariot.pingger.java.bukkit.serverTools.tool.protection.TinyProtection;
+import info.iskariot.pingger.java.bukkit.serverTools.util.ConfigParser;
 import info.iskariot.pingger.java.bukkit.serverTools.util.Formatting;
 
 /**
@@ -32,11 +32,17 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 			// Teams
 			TeamsModule.class,
 			// tools
+			AntiBat.class,
+			AntiWither.class,
+			DeathInventoryDumper.class,
+			EntityPerformanceTweaker.class,
 			FastPregenerator.class,
 			// IdlePregenerator.class,
 			LootablesGenerator.class,
+			PinggersTimingTest.class,
 			SleepVote.class,
-			VillagerAntiKill.class
+			VillagerAntiKill.class,
+			TinyProtection.class
 	};
 
 	/**
@@ -53,7 +59,9 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 		return cl.getCanonicalName() + "." + key;
 	}
 
-	private HashMap<String, CommandInterface> knownSubcommands = new HashMap<>();
+	private boolean								configLoaded		= false;
+
+	private HashMap<String, CommandInterface>	knownSubcommands	= new HashMap<>();
 
 	/**
 	 * Enables the given Module
@@ -121,6 +129,179 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args)
 	{
 		// TODO Auto-generated method stub
+		if (sender.isOp() && args.length > 0) {
+			Duration d;
+			switch (args[0].toLowerCase())
+			{
+				case "events":
+					HandlerList.getHandlerLists().forEach(hl -> {
+						for (RegisteredListener rl : hl.getRegisteredListeners()) {
+							System.out
+									.println(
+											rl.getPlugin().getClass().getCanonicalName() + " \t" + rl.getListener().getClass().getCanonicalName()
+													+ " \t" + rl.getPriority()
+									);
+						}
+					});
+					return true;
+
+				case "tps":
+					TPSMonitor.sendTPS(sender);
+					sender.sendMessage("Took: " + TPSMonitor.took / 1e6);
+					return true;
+
+				case "tryload":
+					try {
+						Class<?> c = ServerToolsPlugin.class.getClassLoader().loadClass(args[1]);
+						loadAndEnableModule((Class<? extends Module>) c);
+					}
+					catch (Throwable t) {
+						t.printStackTrace();
+					}
+					return true;
+
+				case "forcelagg":
+					d = ConfigParser.loadDuration(args.length > 1 ? args[1] : null, Duration.ofSeconds(1));
+					getServer().broadcastMessage("§4Admin is forcing a Lagspike in 5 Seconds with a duration of " + d.toString().substring(2));
+
+				{
+					Duration df = d;
+					getServer()
+							.getScheduler()
+							.runTaskLater(
+									this,
+									() ->
+									{
+										try {
+											Thread.sleep(df.toMillis());
+										}
+										catch (InterruptedException e) {
+											e.printStackTrace();
+										}
+									},
+									100
+							);
+				}
+					return true;
+
+				case "reload":
+					reloadConfig();
+					return true;
+
+				case "shutdown":
+					d = ConfigParser.loadDuration(args.length > 1 ? args[1] : null, Duration.ofMinutes(5));
+					if (d.toSeconds() < 30) {
+						sender.sendMessage("§4Too short duration!");
+						return true;
+					}
+					getServer().broadcastMessage("§4A Server reboot is about to commence! Time until reboot: " + d.toString().substring(2));
+					long ticksFromNow = 0;
+					while (d.toHours() > 24) {
+						Duration df = d.minusDays(1);
+						d = df;
+						ticksFromNow += 24 * 60 * 60 * 20;
+						getServer()
+								.getScheduler()
+								.runTaskLater(
+										this,
+										() -> getServer()
+												.broadcastMessage(
+														"§4A Server reboot is about to commence! Time until reboot: " + df.toString().substring(2)
+												),
+										ticksFromNow
+								);
+					}
+
+					while (d.toMinutes() > 60) {
+						Duration df = d.minusHours(1);
+						d = df;
+						ticksFromNow += 60 * 60 * 20;
+						getServer()
+								.getScheduler()
+								.runTaskLater(
+										this,
+										() -> getServer()
+												.broadcastMessage(
+														"§4A Server reboot is about to commence! Time until reboot: " + df.toString().substring(2)
+												),
+										ticksFromNow
+								);
+					}
+					while (d.toMinutes() > 10) {
+						Duration df = d.minusMinutes(10);
+						d = df;
+						ticksFromNow += 10 * 60 * 20;
+						getServer()
+								.getScheduler()
+								.runTaskLater(
+										this,
+										() -> getServer()
+												.broadcastMessage(
+														"§4A Server reboot is about to commence! Time until reboot: " + df.toString().substring(2)
+												),
+										ticksFromNow
+								);
+					}
+					while (d.toSeconds() > 60) {
+						Duration df = d.minusMinutes(1);
+						d = df;
+						ticksFromNow += 60 * 20;
+						getServer()
+								.getScheduler()
+								.runTaskLater(
+										this,
+										() -> getServer()
+												.broadcastMessage(
+														"§4A Server reboot is about to commence! Time until reboot: " + df.toString().substring(2)
+												),
+										ticksFromNow
+								);
+					}
+					while (d.toSeconds() > 15) {
+						Duration df = d.minusSeconds(10);
+						d = df;
+						ticksFromNow += 10 * 20;
+						getServer()
+								.getScheduler()
+								.runTaskLater(
+										this,
+										() -> getServer()
+												.broadcastMessage(
+														"§4A Server reboot is about to commence! Time until reboot: " + df.toString().substring(2)
+												),
+										ticksFromNow
+								);
+					}
+					while (d.toSeconds() > 0) {
+						Duration df = d.minusSeconds(1);
+						d = df;
+						ticksFromNow += 20;
+						getServer()
+								.getScheduler()
+								.runTaskLater(
+										this,
+										() -> getServer()
+												.broadcastMessage(
+														"§4A Server reboot is about to commence! Time until reboot: " + df.toString().substring(2)
+												),
+										ticksFromNow
+								);
+					}
+					getServer()
+							.getScheduler()
+							.runTaskLater(
+									this,
+									() ->
+									{
+										getServer().broadcastMessage("§4Commencing reboot!");
+										getServer().shutdown();
+									},
+									ticksFromNow
+							);
+					getServer().broadcastMessage("§4Ticks until reboot: " + ticksFromNow);
+					return true;
+			}
+		}
 		return super.onCommand(sender, command, label, args);
 	}
 
@@ -144,6 +325,8 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	public void onEnable()
 	{
 		knownSubcommands.clear();
+		super.reloadConfig();
+		configLoaded = true;
 		reloadConfig();
 		saveConfig();
 		for (Class<? extends Module> mc : modules) {
@@ -157,6 +340,29 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	public void onLoad()
 	{
 		getLogger().info("Loading Iskariot Gaming's Server Tools Plugin...");
+		// Touch classes, so they are loaded into memory
+		info.iskariot.pingger.java.bukkit.serverTools.api.dynmap.DynmapAPII.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.api.griefPrevention.GriefPreventionAPII.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.monitor.TPSMonitor.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.teams.Team.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.teams.TeamsModule.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.teams.events.EventListener.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.teams.events.PlayerJoinedTeamEvent.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.teams.events.PlayerTeamEvent.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.teams.events.TeamEvent.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.AntiBat.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.AntiWither.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.ChunkUnloader.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.FastPregenerator.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.LootablesGenerator.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.lootableGenerator.LootableEntry.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.SleepVote.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.VillagerAntiKill.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.tool.WebMapGenerator.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.util.ConfigParser.class.getClass();
+		info.iskariot.pingger.java.bukkit.serverTools.util.Formatting.class.getClass();
+
+		// Done touching
 		getLogger().info("Loaded!");
 		super.reloadConfig();
 	}
@@ -171,8 +377,19 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	@Override
 	public void reloadConfig()
 	{
-		getServer().getScheduler().runTaskAsynchronously(this, () -> {
-			super.reloadConfig();
-		});
+		if (configLoaded) {
+			getServer().getScheduler().runTaskAsynchronously(this, () -> {
+				super.reloadConfig();
+				loadedModules.forEach(m -> {
+					try {
+						m.onConfigReload();
+					}
+					catch (Throwable t) {
+						t.printStackTrace();
+					}
+				});
+				super.saveConfig();
+			});
+		}
 	}
 }
