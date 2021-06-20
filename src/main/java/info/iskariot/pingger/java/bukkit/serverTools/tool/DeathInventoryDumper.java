@@ -59,12 +59,14 @@ public class DeathInventoryDumper extends Module implements Listener
 	 * @param pde
 	 *            {@link PlayerDeathEvent}
 	 */
-	@EventHandler(priority = EventPriority.MONITOR)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerDeath(PlayerDeathEvent pde)
 	{
 		if (isEnabled()) {
 			log("Player died: " + pde.getEntity().getName() + " at " + Formatting.formatLocation(pde.getEntity().getLocation()));
+
 			try {
+				log("[XP] " + pde.getEntity().getTotalExperience());
 				Inventory inv = pde.getEntity().getInventory();
 				for (ItemStack is : inv.getContents()) {
 					if (is != null) {

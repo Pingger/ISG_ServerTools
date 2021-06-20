@@ -38,15 +38,21 @@ public class TPSMonitor extends Module implements Runnable
 		}
 	}
 
-	private long		lastDebug		= 0;
+	private boolean		badTps					= false;
 
-	private long		lastNotify		= 0;
+	private long		lastDebug				= 0;
 
-	private String		message			= "{1}/20 ({2})";
+	private long		lastNotify				= 0;
 
-	private double		threshold		= 15;
+	private String		message					= "{1}/20 ({2})";
 
-	private Duration	warningCooldown	= Duration.ofSeconds(5);
+	private long		registeredDrop			= 0;
+
+	private long		registeredDropLastDump	= 0;
+
+	private double		threshold				= 15;
+
+	private Duration	warningCooldown			= Duration.ofSeconds(5);
 
 	@Override
 	public void loadConfigDefaults()
@@ -116,6 +122,7 @@ public class TPSMonitor extends Module implements Runnable
 			if (tps < threshold
 					&& lastNotify + warningCooldown.toMillis() < System.currentTimeMillis())
 			{
+				badTps = true;
 				lastNotify = System.currentTimeMillis();
 				String msg = message;
 				msg = msg
@@ -123,6 +130,10 @@ public class TPSMonitor extends Module implements Runnable
 						.replaceAll("\\{2\\}", new DecimalFormat("#0.0").format(threshold));
 				stp.getServer().broadcastMessage(msg);
 				stp.reloadConfig();
+			}
+			else if (badTps && tps > 19.5) {
+				badTps = false;
+				stp.getServer().broadcastMessage("[TPSMon] Back to normal");
 			}
 		}
 
@@ -147,6 +158,9 @@ public class TPSMonitor extends Module implements Runnable
 			}
 		}
 		tps = tpsMap.get(20);
+		if (tps < threshold) {
+			registeredDrop = System.currentTimeMillis();
+		}
 		took = System.nanoTime() - s;
 		if (isDebug() && lastDebug + 1e3 < System.currentTimeMillis()) {
 			lastDebug = System.currentTimeMillis();
@@ -156,6 +170,16 @@ public class TPSMonitor extends Module implements Runnable
 				debug(() -> "TPS " + interval + ": " + String.format("%.2f", tpsMap.get(interval)));
 			}
 			debug(() -> "Took: " + took / 1e6 + "ms");
+		}
+		if (isLogging() && registeredDrop + 1000 * 30 > System.currentTimeMillis() && registeredDropLastDump + 1000 < System.currentTimeMillis()) {
+			registeredDropLastDump = System.currentTimeMillis();
+			log(() -> "<<<<<<<<<< TPS >>>>>>>>>>");
+			log(() -> "Threshold: " + String.format("%.2f", threshold));
+			log(() -> "TPS: " + String.format("%.2f", tps));
+			for (Integer interval : tickMap.keySet()) {
+				log(() -> "TPS " + interval + ": " + String.format("%.2f", tpsMap.get(interval)));
+			}
+			log(() -> "Took: " + took / 1e6 + "ms");
 		}
 	}
 }
