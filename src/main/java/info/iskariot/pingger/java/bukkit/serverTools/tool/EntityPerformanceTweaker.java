@@ -42,8 +42,7 @@ public class EntityPerformanceTweaker extends Module implements Listener
 	public void onConfigReload()
 	{
 		super.onConfigReload();
-		loadSet("NoCollision", noCollision);
-		loadSet("NoPickup", noPickup);
+		stp.getServer().getScheduler().runTaskLater(stp, () -> doConfigReload(), 0);
 	}
 
 	@Override
@@ -55,7 +54,7 @@ public class EntityPerformanceTweaker extends Module implements Listener
 	@Override
 	public void onEnable()
 	{
-		onConfigReload();
+		doConfigReload();
 		stp.getServer().getPluginManager().registerEvents(this, stp);
 	}
 
@@ -77,6 +76,12 @@ public class EntityPerformanceTweaker extends Module implements Listener
 				}
 			}
 		}
+	}
+
+	private void doConfigReload()
+	{
+		loadSet("NoCollision", noCollision);
+		loadSet("NoPickup", noPickup);
 	}
 
 	private void loadSet(String key, Set<EntityType> set)
