@@ -188,7 +188,11 @@ public abstract class Module
 	/**
 	 * The ServerToolsPlugin, to be set in onEnable
 	 */
-	protected ServerToolsPlugin stp;
+	protected ServerToolsPlugin	stp;
+	private boolean				debug	= false;
+	private boolean				enabled	= false;
+	private boolean				fine	= false;
+	private boolean				logging	= true;
 
 	/**
 	 * Ensures, that the given Key is set.
@@ -318,7 +322,25 @@ public abstract class Module
 	public final boolean isEnabled()
 	{
 		if (stp == null) { return false; }
-		return stp.isEnabled() && getConfig().getBoolean("enabled");
+		return stp.isEnabled() && enabled;
+	}
+
+	/**
+	 * @return <code>true</code> if fine logging is enabled.
+	 * @apiNote {@link #isLogging()} might return <code>false</code>, in which case
+	 *          the {@link #fine} methods don't output
+	 */
+	public boolean isFineLogging()
+	{
+		return fine;
+	}
+
+	/**
+	 * @return <code>true</code> if logging is enabled
+	 */
+	public boolean isLogging()
+	{
+		return logging;
 	}
 
 	/**
@@ -329,6 +351,18 @@ public abstract class Module
 	{
 		ensureConfig("enabled", true, null);
 		ensureConfig("logging", true, null);
+	}
+
+	/**
+	 * Called, when the config is reloaded
+	 */
+	public void onConfigReload()
+	{
+		// TODO call onEnable / onDisable when this changes
+		enabled = getConfig().getBoolean("enabled", enabled);
+		debug = getConfig().getBoolean("debug", false);
+		fine = debug || getConfig().getBoolean("fine", false);
+		logging = debug || getConfig().getBoolean("logging", true);
 	}
 
 	/**
@@ -362,7 +396,7 @@ public abstract class Module
 	 */
 	protected void debug(Supplier<String> line)
 	{
-		if (getConfig().getBoolean("debug", false)) {
+		if (isDebug()) {
 			stp.getLogger().info("[" + getClass().getSimpleName() + "] §d[DEBUG] §8" + line.get());
 		}
 	}
@@ -375,7 +409,7 @@ public abstract class Module
 	 */
 	protected void fine(String line)
 	{
-		if (getConfig().getBoolean("logging", true) && (getConfig().getBoolean("fine", false) || getConfig().getBoolean("debug", false))) {
+		if (isLogging() && isFineLogging()) {
 			stp.getLogger().info("[" + getClass().getSimpleName() + "] §8" + line);
 		}
 	}
@@ -389,7 +423,7 @@ public abstract class Module
 	 */
 	protected void fine(Supplier<String> line)
 	{
-		if (getConfig().getBoolean("logging", true) && (getConfig().getBoolean("fine", false) || getConfig().getBoolean("debug", false))) {
+		if (isLogging() && isFineLogging()) {
 			stp.getLogger().info("[" + getClass().getSimpleName() + "] §8" + line.get());
 		}
 	}
@@ -417,6 +451,14 @@ public abstract class Module
 	}
 
 	/**
+	 * @return <code>true</code> when the debug mode is enabled
+	 */
+	protected boolean isDebug()
+	{
+		return debug;
+	}
+
+	/**
 	 * Log a given line, if the 'logging' setting is true
 	 *
 	 * @param line
@@ -424,7 +466,7 @@ public abstract class Module
 	 */
 	protected void log(String line)
 	{
-		if (getConfig().getBoolean("logging", true)) {
+		if (isLogging()) {
 			stp.getLogger().info("[" + getClass().getSimpleName() + "] " + line);
 		}
 	}
@@ -439,7 +481,7 @@ public abstract class Module
 	 */
 	protected void log(String line, Throwable t)
 	{
-		if (getConfig().getBoolean("logging", true)) {
+		if (isLogging()) {
 			stp.getLogger().log(Level.INFO, "[" + getClass().getSimpleName() + "] " + line, t);
 		}
 	}
@@ -453,7 +495,7 @@ public abstract class Module
 	 */
 	protected void log(Supplier<String> line)
 	{
-		if (getConfig().getBoolean("logging", true)) {
+		if (isLogging()) {
 			stp.getLogger().info("[" + getClass().getSimpleName() + "] " + line.get());
 		}
 	}

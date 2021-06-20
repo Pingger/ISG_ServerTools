@@ -1,23 +1,12 @@
 package info.iskariot.pingger.java.bukkit.serverTools.teams;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.UUID;
+import java.util.*;
 
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.scoreboard.Team.Option;
 import org.bukkit.scoreboard.Team.OptionStatus;
 
@@ -28,6 +17,11 @@ import info.iskariot.pingger.java.bukkit.serverTools.teams.events.PlayerJoinedTe
  *
  * @author Pingger
  *
+ */
+/*
+ * TODO: Map<Player,Set<Team>>
+ * TODO: Team-Allegiances
+ * TODO: Protection
  */
 public class Team
 {
@@ -88,7 +82,7 @@ public class Team
 	 */
 	public boolean isPartOfTeam(OfflinePlayer p)
 	{
-		return members.contains(p) || members.parallelStream().anyMatch(op -> op.getUniqueId().equals(p.getUniqueId()));
+		return members.contains(p);
 	}
 
 	/**
@@ -144,9 +138,17 @@ public class Team
 			pje.getPlayer().setCustomName("§" + getTextColor() + pje.getPlayer().getName() + "§r");
 			pje.getPlayer().setCustomNameVisible(true);
 
-			if (pje.getPlayer().getBedSpawnLocation() == null) {
-				if (spawnLocation != null) {
-					pje.getPlayer().setBedSpawnLocation(spawnLocation, true);
+			// When no spawn location is set and a team spawn exists, set spawnpoint to team-spawn
+			if (pje.getPlayer().getBedSpawnLocation() == null && spawnLocation != null) {
+				pje.getPlayer().setBedSpawnLocation(spawnLocation, true);
+				// When also first join, teleport to team-spawn
+				if (pje.getPlayer().getStatistic(Statistic.LEAVE_GAME) == 0 || pje.getPlayer().getInventory().isEmpty()) {
+					pje.getPlayer().teleport(spawnLocation);
+					parent
+							.getServerToolsPlugin()
+							.getServer()
+							.getScheduler()
+							.runTaskLater(parent.getServerToolsPlugin(), () -> pje.getPlayer().teleport(spawnLocation), 2);
 				}
 			}
 		}
@@ -168,6 +170,51 @@ public class Team
 			if (ple.getPlayer().getBedSpawnLocation() == null) {
 				if (spawnLocation != null) {
 					ple.getPlayer().setBedSpawnLocation(spawnLocation, true);
+				}
+			}
+		}
+	}
+
+	/**
+	 *
+	 * @param pme
+	 *            PlayerMoveEvent
+	 * @deprecated this is just an ugly fix for area protection
+	 */
+	// FIXME remove, when Protection is properly implemented and replace this with this Protection
+	@Deprecated
+	public void onPlayerMove(PlayerMoveEvent pme)
+	{
+		if (pme.getPlayer().isOp()) { return; }
+		if (pme.getTo().getWorld().equals(spawnLocation.getWorld())) {
+			if (!isPartOfTeam(pme.getPlayer())) {
+				int x = pme.getTo().getBlockX();
+				int z = pme.getTo().getBlockZ();
+				if (spawnLocation.getBlockX() - 1024 < x && spawnLocation.getBlockX() + 1024 > x
+						&& spawnLocation.getBlockZ() - 1024 < z && spawnLocation.getBlockZ() + 1024 > z)
+				{
+					pme.setCancelled(true);
+					pme.getPlayer().teleport(pme.getFrom());
+					x = pme.getFrom().getBlockX();
+					z = pme.getFrom().getBlockZ();
+					pme
+							.getPlayer()
+							.sendMessage(
+									"§4Since the Spawn-Protection is not available yet, you are not allowed to enter the other Teams Spawn-Area!"
+							);
+					if (spawnLocation.getBlockX() - 1024 < x && spawnLocation.getBlockX() + 1024 > x
+							&& spawnLocation.getBlockZ() - 1024 < z && spawnLocation.getBlockZ() + 1024 > z)
+					{
+						parent
+								.getServerToolsPlugin()
+								.getServer()
+								.getScheduler()
+								.runTaskLater(
+										parent.getServerToolsPlugin(),
+										() -> pme.getPlayer().teleport(pme.getPlayer().getBedSpawnLocation()),
+										1
+								);
+					}
 				}
 			}
 		}
@@ -198,6 +245,7 @@ public class Team
 			spawnLocation = spawnLocation.add(0.5, 0.5, 0.5);
 		}
 		List<String> ms = cs.getStringList("members");
+		members.clear();
 		ms.forEach(m -> members.add(parent.getServerToolsPlugin().getServer().getOfflinePlayer(UUID.fromString(m))));
 		updateTeam();
 	}

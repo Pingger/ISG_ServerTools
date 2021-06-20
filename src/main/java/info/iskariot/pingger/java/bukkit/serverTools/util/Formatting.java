@@ -1,5 +1,6 @@
 package info.iskariot.pingger.java.bukkit.serverTools.util;
 
+import org.bukkit.Location;
 import org.bukkit.World;
 
 /**
@@ -55,6 +56,30 @@ public class Formatting
 	public static final String	FC_YELLOW		= "§e";
 
 	/**
+	 * Alias for {@link #formatLocation(Location)}
+	 *
+	 * @param l
+	 *            the Location to format
+	 * @return see {@link #formatLocation(Location)}
+	 */
+	public static String format(Location l)
+	{
+		return formatLocation(l);
+	}
+
+	/**
+	 * Alias for {@link #formatWorld(World)}
+	 *
+	 * @param w
+	 *            the World to format
+	 * @return see {@link #formatWorld(World)}
+	 */
+	public static String format(World w)
+	{
+		return formatWorld(w);
+	}
+
+	/**
 	 * Formats a Anvil coordinate to a user recognizable String
 	 *
 	 * @param x
@@ -66,6 +91,19 @@ public class Formatting
 	public static String formatAnvil(int x, int z)
 	{
 		return FC_DARK_YELLOW + String.format("A(% ,4d,% ,4d)", x, z) + FC_RESET;
+	}
+
+	/**
+	 * Formats a Location
+	 *
+	 * @param location
+	 *            the location to format
+	 * @return a String for the location like this "formatWorld()
+	 *         formatShortLocation()"
+	 */
+	public static String formatLocation(Location location)
+	{
+		return formatWorld(location.getWorld()) + formatShortLocation(location);
 	}
 
 	/**
@@ -95,6 +133,18 @@ public class Formatting
 	}
 
 	/**
+	 * Format only the coordinates of the given location
+	 *
+	 * @param location
+	 *            the location to format
+	 * @return x.## y.## z.##
+	 */
+	public static String formatShortLocation(Location location)
+	{
+		return String.format("[%.2f:%.2f:%.2f]", location.getX(), location.getY(), location.getZ());
+	}
+
+	/**
 	 * Formats a World to a user recognizable String
 	 *
 	 * @param w
@@ -105,4 +155,5 @@ public class Formatting
 	{
 		return FC_DARK_AQUA + w.getName() + FC_RESET + " (" + FC_BLUE + w.getUID().toString() + FC_RESET + ")";
 	}
+
 }

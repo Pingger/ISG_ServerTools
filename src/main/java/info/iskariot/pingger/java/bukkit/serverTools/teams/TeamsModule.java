@@ -11,6 +11,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 
 import info.iskariot.pingger.java.bukkit.serverTools.Module;
 import info.iskariot.pingger.java.bukkit.serverTools.ServerToolsPlugin;
@@ -102,7 +103,7 @@ public class TeamsModule extends Module implements Listener
 	 * @param pje
 	 *            {@link PlayerJoinEvent}
 	 */
-	@EventHandler
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onPlayerJoin(PlayerJoinEvent pje)
 	{
 		teams.forEach(t -> t.onPlayerJoin(pje));
@@ -121,6 +122,12 @@ public class TeamsModule extends Module implements Listener
 		teams.forEach(t -> t.onPlayerLogin(ple));
 	}
 
+	@EventHandler
+	public void onPlayerMove(PlayerMoveEvent pme)
+	{
+		teams.forEach(t -> t.onPlayerMove(pme));
+	}
+
 	/**
 	 * @return the {@link ConfigurationSection} containing the Teams
 	 */
@@ -128,5 +135,4 @@ public class TeamsModule extends Module implements Listener
 	{
 		return getConfig("teams");
 	}
-
 }
