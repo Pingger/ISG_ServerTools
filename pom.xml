@@ -70,10 +70,6 @@
 			<url>https://maven.sk89q.com/repo/</url>
 		</repository>
 		<repository>
-			<id>vault-repo</id>
-			<url>https://nexus.hc.to/content/repositories/pub_releases</url>
-		</repository>
-		<repository>
 			<id>mikeprimm.com</id>
 			<url>https://repo.mikeprimm.com/</url>
 		</repository>
@@ -96,16 +92,16 @@
 			<version>2.1.2</version>
 		</dependency>
 		<dependency>
-			<groupId>com.github.TechFortress</groupId>
-			<artifactId>GriefPrevention</artifactId>
-			<version>16.7.1</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.dynmap</groupId>
 			<artifactId>dynmap-api</artifactId>
 			<version>2.0</version>
 			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.13.2</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
