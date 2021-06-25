@@ -341,8 +341,6 @@ public class ServerToolsPlugin extends JavaPlugin implements Listener
 	{
 		getLogger().info("Loading Iskariot Gaming's Server Tools Plugin...");
 		// Touch classes, so they are loaded into memory
-		info.iskariot.pingger.java.bukkit.serverTools.api.dynmap.DynmapAPII.class.getClass();
-		info.iskariot.pingger.java.bukkit.serverTools.api.griefPrevention.GriefPreventionAPII.class.getClass();
 		info.iskariot.pingger.java.bukkit.serverTools.monitor.TPSMonitor.class.getClass();
 		info.iskariot.pingger.java.bukkit.serverTools.teams.Team.class.getClass();
 		info.iskariot.pingger.java.bukkit.serverTools.teams.TeamsModule.class.getClass();
